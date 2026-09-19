@@ -1,0 +1,106 @@
+@import "tailwindcss";
+
+@theme {
+  --color-navy: #0a0a0f;
+  --color-surface: #111118;
+  --color-surface2: #1a1a1e;
+  --color-surface3: #222228;
+  --color-border: #2a2a30;
+  --color-muted: #7a7070;
+  --color-ink: #fff0e8;
+  --color-teal: #2dd4bf;
+  --color-indigo: #818cf8;
+  --color-amber: #f5a623;
+  --color-rose: #f4717a;
+  --color-accent: #ff6b3d;
+  --color-accentSoft: #3a1e14;
+  --color-accentLight: #ff8c42;
+
+  --font-display: "Space Grotesk", sans-serif;
+  --font-body: "Inter", sans-serif;
+  --font-mono: "JetBrains Mono", monospace;
+
+  --animate-pulseDot: pulseDot 1.8s ease-in-out infinite;
+  --animate-shimmer: shimmer 1.6s linear infinite;
+}
+
+@keyframes pulseDot {
+  0%,
+  100% {
+    transform: scale(1);
+    opacity: 1;
+  }
+  50% {
+    transform: scale(1.6);
+    opacity: 0.4;
+  }
+}
+
+@keyframes shimmer {
+  0% {
+    background-position: -400px 0;
+  }
+  100% {
+    background-position: 400px 0;
+  }
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+body {
+  @apply bg-navy text-ink font-body antialiased;
+  background-image:
+    radial-gradient(ellipse at 15% 0%, rgba(255, 107, 61, 0.1) 0%, transparent 55%),
+    radial-gradient(ellipse at 85% 15%, rgba(255, 140, 66, 0.06) 0%, transparent 50%),
+    radial-gradient(ellipse at 50% 95%, rgba(255, 107, 61, 0.04) 0%, transparent 50%);
+  background-attachment: fixed;
+}
+
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+::-webkit-scrollbar-thumb {
+  background: linear-gradient(180deg, rgba(255, 107, 61, 0.5), rgba(255, 140, 66, 0.3));
+  border-radius: 999px;
+}
+::-webkit-scrollbar-track {
+  @apply bg-transparent;
+}
+
+.shimmer-bg {
+  background: linear-gradient(90deg, rgba(255, 107, 61, 0.08) 0px, rgba(255, 179, 71, 0.28) 40px, rgba(255, 107, 61, 0.08) 80px);
+  background-size: 800px 100%;
+}
+
+.skeleton-card {
+  background: linear-gradient(135deg, rgba(255, 107, 61, 0.05) 0%, rgba(255, 179, 71, 0.02) 100%);
+  border: 1px solid rgba(255, 107, 61, 0.16);
+  backdrop-filter: blur(12px);
+  box-shadow: 0 8px 32px 0 rgba(255, 107, 61, 0.03);
+}
+
+/* Orange gradient text */
+.gradient-text {
+  background: linear-gradient(135deg, #ff6b3d 0%, #ffb347 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.001ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.001ms !important;
+  }
+}
+
+*:focus-visible {
+  outline: 2px solid #ff6b3d;
+  outline-offset: 2px;
+}
