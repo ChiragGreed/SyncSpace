@@ -1,10 +1,12 @@
 import { useState, useRef, useEffect } from 'react'
 import { LogOut } from 'lucide-react'
-import { currentUser } from '../../../mockData.js'
+import { useSelector } from 'react-redux'
 
 export default function TopbarProfile() {
   const [showProfile, setShowProfile] = useState(false)
   const profileDropdownRef = useRef(null)
+  const { fullName, email, role } = useSelector((state) => state.user)
+  const avatarInitials = fullName?.split(' ').map((name) => name[0]).join('').slice(0, 2) || 'U'
 
   useEffect(() => {
     function handleClickOutside(event) {
@@ -29,11 +31,11 @@ export default function TopbarProfile() {
           className="w-8 h-8 rounded-full flex items-center justify-center font-display text-xs font-semibold text-white shrink-0"
           style={{ background: 'linear-gradient(135deg, #ff6b3d 0%, #ffb347 100%)', boxShadow: '0 2px 10px rgba(255,107,61,0.35)' }}
         >
-          {currentUser.avatarInitials}
+          {avatarInitials}
         </div>
         <div className="hidden sm:block leading-tight">
-          <p className="text-sm font-medium hover:text-white transition-colors" style={{ color: '#fff0e8' }}>{currentUser.name}</p>
-          <p className="text-[11px] text-muted">{currentUser.role}</p>
+          <p className="text-sm font-medium hover:text-white transition-colors" style={{ color: '#fff0e8' }}>{fullName || 'User'}</p>
+          <p className="text-[11px] text-muted">{role || 'Member'}</p>
         </div>
       </div>
 
@@ -52,11 +54,11 @@ export default function TopbarProfile() {
               className="w-14 h-14 rounded-full flex items-center justify-center font-display text-lg font-semibold text-white mb-2"
               style={{ background: 'linear-gradient(135deg, #ff6b3d 0%, #ffb347 100%)', boxShadow: '0 4px 14px rgba(255,107,61,0.35)' }}
             >
-              {currentUser.avatarInitials}
+              {avatarInitials}
             </div>
-            <p className="text-base font-semibold" style={{ color: '#fff0e8' }}>{currentUser.name}</p>
-            <p className="text-xs text-muted mb-1">{currentUser.role}</p>
-            <p className="text-[11px] font-mono" style={{ color: '#ff8c42' }}>chirag@syncspace.io</p>
+            <p className="text-base font-semibold" style={{ color: '#fff0e8' }}>{fullName || 'User'}</p>
+            <p className="text-xs text-muted mb-1">{role || 'Member'}</p>
+            <p className="text-[11px] font-mono" style={{ color: '#ff8c42' }}>{email || 'No email available'}</p>
           </div>
 
           <div className="flex flex-col gap-1 mt-2">

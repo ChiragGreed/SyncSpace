@@ -1,5 +1,3 @@
-import { members } from '../../../mockData.js'
-
 const PRIORITY_CONFIG = {
   high: { bg: 'rgba(255, 107, 61, 0.15)', color: '#ff6b3d', border: 'rgba(255, 107, 61, 0.3)' },
   medium: { bg: 'rgba(255, 179, 71, 0.12)', color: '#ffb347', border: 'rgba(255, 179, 71, 0.25)' },
@@ -19,8 +17,8 @@ const STATUS_DOT = {
   todo: 'rgba(122, 112, 112, 0.5)',
 }
 
-export default function TaskRow({ task }) {
-  const assignee = members.find((m) => m.id === task.assignee)
+export default function TaskRow({ task, user }) {
+  const assignee = user;
   const priority = PRIORITY_CONFIG[task.priority] ?? PRIORITY_CONFIG.low
 
   return (
@@ -48,11 +46,15 @@ export default function TaskRow({ task }) {
       <span className="text-[11px] text-muted font-mono w-14 shrink-0 text-right">{task.due}</span>
       {assignee && (
         <div
-          title={assignee.name}
+          title={assignee}
           className="w-6 h-6 rounded-full flex items-center justify-center text-[9px] font-mono text-white shrink-0"
           style={{ background: 'linear-gradient(135deg, #ff6b3d 0%, #ffb347 100%)' }}
         >
-          {assignee.initials}
+          {(assignee)
+            .split(' ')
+            .map((name) => name[0])
+            .join('')
+            .slice(0, 2)}
         </div>
       )}
     </div>

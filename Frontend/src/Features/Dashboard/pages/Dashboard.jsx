@@ -6,20 +6,17 @@ import TaskRow from '../components/TaskRow.jsx'
 import FilterBar from '../components/FilterBar.jsx'
 import EmptyState from '../components/EmptyState.jsx'
 import CreateProjectModal from '../components/CreateProjectModal.jsx'
-import {
-  StatSkeleton,
-  ProjectCardSkeleton,
-  TaskRowSkeleton,
-  GoalsCardSkeleton,
-  AssignmentCardSkeleton,
-  DeadlineCardSkeleton,
-} from '../components/Skeletons.jsx'
-import { stats, projects as initialProjects, tasks, currentUser } from '../../../mockData.js'
+import { StatSkeleton, ProjectCardSkeleton, TaskRowSkeleton, GoalsCardSkeleton, AssignmentCardSkeleton, DeadlineCardSkeleton } from '../components/Skeletons.jsx'
+import { stats } from '../../../mockData.js'
 import GoalsCard from '../components/GoalsCard.jsx'
 import AssignmentCard from '../components/AssignmentCard.jsx'
 import DeadlineCard from '../components/DeadlineCard.jsx'
 import DashboardBackground from '../components/DashboardBackground.jsx'
 import TeammatesPage from '../../TeamMates/pages/TeamMates.jsx'
+import useAuth from '../hook/useAuth.js'
+import useProject from '../hook/useProject.js'
+import useTask from '../hook/useTask.js'
+import { useSelector } from 'react-redux'
 
 const PROJECT_FILTERS = [
   { id: 'all', label: 'All' },
@@ -35,14 +32,57 @@ const TASK_FILTERS = [
 ]
 
 const TABS = ['Overview', 'Activity']
+const STATUS_ORDER = { 'todo': 0, 'in-progress': 1, 'done': 2 }
+
+const normalizeProject = (project) => ({
+  ...project,
+  id: project._id,
+  name: project.title,
+  status: project.status === 'completed' ? 'done' : 'in-progress',
+  dueDate: project.dueDate? new Date(project.dueDate).toLocaleDateString('en-US', { month: 'short', day: 'numeric' }): 'No due date',
+  progress: project.status === 'completed' ? 100 : 0,
+})
+
+const normalizeTask = (task) => ({
+  ...task,
+  id: task._id,
+  status: {
+    toDo: 'todo',
+    inProgress: 'in-progress',
+    completed: 'done',
+  }[task.status] ?? task.status,
+  project: task.projectId?.title || 'Personal task',
+  due: '-',
+})
 
 export default function Dashboard({ query }) {
-  const [loading, setLoading] = useState(true)
-  const [projectList, setProjectList] = useState(initialProjects)
-  const [projectFilter, setProjectFilter] = useState('all')
-  const [taskFilter, setTaskFilter] = useState('all')
-  const [tab, setTab] = useState(TABS[0])
-  const [showCreateModal, setShowCreateModal] = useState(false)
+  const [loading, setLoading] = useState(true);
+  const [projectFilter, setProjectFilter] = useState('all');
+  const [taskFilter, setTaskFilter] = useState('all');
+  const [tab, setTab] = useState(TABS[0]);
+  const [showCreateModal, setShowCreateModal] = useState(false);
+
+  const { getMe } = useAuth();
+  const { getProjects, createProject } = useProject();
+  const { getTasks } = useTask();
+  const fullName = useSelector((state) => state.user.fullName);
+  const projects = useSelector((state) => state.project.projects);
+  const tasks = useSelector((state) => state.task.tasks);
+  const firstName = fullName?.split(' ')[0] || 'there';
+  const projectList = useMemo(() => projects.map(normalizeProject), [projects]);
+  const taskList = useMemo(() => tasks.map(normalizeTask), [tasks]);
+
+  useEffect(() => {
+    getMe();
+  }, [getMe])
+
+  useEffect(() => {
+    getProjects();
+  }, [getProjects])
+
+  useEffect(() => {
+    getTasks();
+  }, [getTasks])
 
   useEffect(() => {
     const timer = setTimeout(() => setLoading(false), 900)
@@ -65,23 +105,22 @@ export default function Dashboard({ query }) {
     [projectList, projectFilter, q]
   )
 
-  const STATUS_ORDER = { 'todo': 0, 'in-progress': 1, 'done': 2 }
-
   const filteredTasks = useMemo(
     () =>
-      tasks
+      taskList
         .filter((t) => (taskFilter === 'all' ? true : t.status === taskFilter))
         .filter((t) => t.title.toLowerCase().includes(q) || t.project.toLowerCase().includes(q))
         .sort((a, b) => (STATUS_ORDER[a.status] ?? 99) - (STATUS_ORDER[b.status] ?? 99)),
-    [q, taskFilter]
+    [q, taskFilter, taskList]
   )
 
   const activeProjectsCount = projectList.filter((p) => p.status === 'in-progress').length
 
   const liveStats = stats.map((s) => (s.id === 'active' ? { ...s, value: activeProjectsCount } : s))
 
-  const handleCreateProject = (newProject) => {
-    setProjectList((prev) => [newProject, ...prev])
+  const handleCreateProject = async (newProject) => {
+    await createProject(newProject.name, newProject.description, 'inProgress', newProject.dueDate)
+    await getProjects()
   }
 
   return (
@@ -92,7 +131,7 @@ export default function Dashboard({ query }) {
         <div className="mb-6">
           <h1 className="font-display text-xl md:text-2xl font-bold">
             <span style={{ color: '#fff0e8' }}>Welcome back, </span>
-            <span style={{ background: 'linear-gradient(135deg, #ff6b3d 0%, #ffb347 100%)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent', backgroundClip: 'text' }}>{currentUser.name.split(' ')[0]}</span>
+            <span style={{ background: 'linear-gradient(135deg, #ff6b3d 0%, #ffb347 100%)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent', backgroundClip: 'text' }}>{firstName}</span>
           </h1>
           <p className="text-sm text-muted mt-1">Here's what's moving across your projects.</p>
         </div>
@@ -108,7 +147,7 @@ export default function Dashboard({ query }) {
         <section className="mb-10">
           <div className="flex items-center justify-between mb-5">
             <h2 className="font-display font-semibold text-ink">
-              All about <span className="text-muted font-normal text-sm">{currentUser.name.split(' ')[0]}</span>
+              All about <span className="text-muted font-normal text-sm">{firstName}</span>
             </h2>
             <div className="hidden sm:flex rounded-full p-0.5 text-xs" style={{ background: 'rgba(255,107,61,0.07)', border: '1px solid rgba(255,107,61,0.15)' }}>
               {TABS.map((t) => (
@@ -161,7 +200,7 @@ export default function Dashboard({ query }) {
                 style={{ background: 'linear-gradient(135deg, #ff6b3d 0%, #ffb347 100%)', boxShadow: '0 3px 12px rgba(255,107,61,0.35)' }}
               >
                 <Plus className="w-3.5 h-3.5" strokeWidth={2.5} />
-                
+
               </button>
             </div>
           </div>
@@ -198,7 +237,7 @@ export default function Dashboard({ query }) {
                 <EmptyState title="No tasks match this view" description="Clear the filter or search to see everything." />
               </div>
             ) : (
-              filteredTasks.map((t) => <TaskRow key={t.id} task={t} />)
+              filteredTasks.map((t) => <TaskRow key={t.id} task={t} user={fullName} />)
             )}
           </div>
         </section>

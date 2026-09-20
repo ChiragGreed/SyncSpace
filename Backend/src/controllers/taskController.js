@@ -60,7 +60,7 @@ export const deleteTask = async (req, res, next) => {
 export const getTasks = async (req, res, next) => {
     try {
         const userId = req.user;
-        const tasks = await taskModel.find({ assignee: userId });
+        const tasks = await taskModel.find({ assignee: userId }).populate("projectId", "title");
 
         if (!tasks || tasks.length < 1) return res.status(200).json({
             message: "No tasks to show",

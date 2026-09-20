@@ -7,7 +7,7 @@ import taskReducers from '../Features/Dashboard/state/taskSlice.js';
 
 const reduxStore = configureStore({
     reducer: {
-        auth: authReducers,
+        user: authReducers,
         invitation: invitationReducers,
         notification: notificationReducers,
         project: projectReducers,

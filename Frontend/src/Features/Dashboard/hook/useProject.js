@@ -1,3 +1,4 @@
+import { useCallback } from 'react';
 import { useDispatch } from 'react-redux';
 import { createProjectApi, getProjectsApi, getProjectApi, getProjectTasksApi, updateProjectApi, updateProjectStatusApi, deleteProjectApi } from '../service/projectApi.js';
 import { removeProject, setAdmin, setDescription, setDueDate, setMembers, setProjectTasks, setProjects, setStatus, setTitle } from '../state/projectSlice.js';
@@ -22,11 +23,10 @@ const useProject = () => {
 		console.log("useProject: createProject")
 	}
 
-	const getProjects = async () => {
+	const getProjects = useCallback(async () => {
 		const response = await getProjectsApi();
 		dispatch(setProjects(response.projects ?? []));
-		console.log("useProject: getProjects")
-	}
+	}, [dispatch]);
 
 	const getProject = async (projectId) => {
 		const response = await getProjectApi(projectId);

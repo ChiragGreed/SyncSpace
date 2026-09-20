@@ -32,7 +32,7 @@ export const getProjects = async (req, res, next) => {
     try {
         const userId = req.user;
 
-        const projects = await projectModel.find({ members: userId });
+        const projects = await projectModel.find({ members: userId }).populate("members", "fullName email role");
 
         if (!projects || projects.length === 0) return res.status(200).json({
             message: "No projects to show",

@@ -1,6 +1,7 @@
+import { useCallback } from 'react';
 import { useDispatch } from 'react-redux';
 import { getMeApi, loginApi, registerApi } from '../service/authApi.js';
-import { setEmail, setFullName, setPassword, setRole } from '../state/authSlice.js';
+import { setEmail, setFullName, setRole } from '../state/authSlice.js';
 
 
 const useAuth = () => {
@@ -12,7 +13,6 @@ const useAuth = () => {
 
         dispatch(setFullName(response.user.fullName));
         dispatch(setEmail(response.user.email));
-        dispatch(setPassword(response.user.password));
         dispatch(setRole(response.user.role));
     }
 
@@ -21,19 +21,17 @@ const useAuth = () => {
 
         dispatch(setFullName(response.user.fullName));
         dispatch(setEmail(response.user.email));
-        dispatch(setPassword(response.user.password));
         dispatch(setRole(response.user.role));
 
     }
 
-    const getMe = async () => {
+    const getMe = useCallback(async () => {
         const response = await getMeApi();
-
+        
         dispatch(setFullName(response.user.fullName));
         dispatch(setEmail(response.user.email));
-        dispatch(setPassword(response.user.password));
         dispatch(setRole(response.user.role));
-    }
+    }, [dispatch]);
 
     return { register, login, getMe }
 }

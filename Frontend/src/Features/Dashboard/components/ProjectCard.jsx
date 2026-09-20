@@ -1,7 +1,6 @@
 import { CalendarDays } from 'lucide-react'
 import ProgressBar from './ProgressBar.jsx'
 import SyncPulse from './SyncPulse.jsx'
-import { members as allMembers } from '../../../mockData.js'
 
 const STATUS_CONFIG = {
   'in-progress': {
@@ -25,10 +24,6 @@ const AVATAR_BG = [
 ]
 
 export default function ProjectCard({ project }) {
-  const memberAvatars = project.members
-    .map((id) => allMembers.find((m) => m.id === id))
-    .filter(Boolean)
-
   const status = STATUS_CONFIG[project.status] ?? STATUS_CONFIG['in-progress']
 
   return (
@@ -67,22 +62,31 @@ export default function ProjectCard({ project }) {
 
       <div className="flex items-center justify-between pt-3" style={{ borderTop: '1px solid rgba(255, 107, 61, 0.08)' }}>
         <div className="flex -space-x-2">
-          {memberAvatars.map((m, i) => (
-            <div
-              key={m.id}
-              title={m.name}
-              className="w-6 h-6 rounded-full border-2 flex items-center justify-center text-[9px] font-mono text-white"
-              style={{
-                background: AVATAR_BG[i % AVATAR_BG.length],
-                borderColor: 'rgba(10,8,6,0.9)',
-              }}
-            >
-              {m.initials}
-            </div>
-          ))}
+          {project.members?.slice(0, 4).map((member, i) => {
+            const memberName = member.fullName || member.name || String(member)
+            const initials = memberName
+              .split(' ')
+              .map((name) => name[0])
+              .join('')
+              .slice(0, 2)
+
+            return (
+              <div
+                key={member._id || member.id || member}
+                title={memberName}
+                className="w-6 h-6 rounded-full border-2 flex items-center justify-center text-[9px] font-mono text-white"
+                style={{
+                  background: AVATAR_BG[i % AVATAR_BG.length],
+                  borderColor: 'rgba(10,8,6,0.9)',
+                }}
+              >
+                {initials}
+              </div>
+            )
+          })}
         </div>
         <span className="text-[11px] text-muted font-mono">
-          {project.tasksDone}/{project.tasksTotal} tasks
+          {project.members?.length || 0} members
         </span>
       </div>
     </div>
