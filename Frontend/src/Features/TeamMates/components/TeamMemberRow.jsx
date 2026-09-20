@@ -6,6 +6,12 @@ const AVATAR_BG = [
 ]
 
 export default function TeamMemberRow({ member, index, isLast }) {
+  const initials = member.fullName
+    .split(' ')
+    .map((name) => name[0])
+    .join('')
+    .slice(0, 2)
+
   return (
     <div
       className="flex items-center gap-3 py-2 px-1 rounded-xl"
@@ -15,9 +21,9 @@ export default function TeamMemberRow({ member, index, isLast }) {
         className="w-8 h-8 rounded-full flex items-center justify-center text-[10px] font-mono text-white shrink-0"
         style={{ background: AVATAR_BG[index % AVATAR_BG.length] }}
       >
-        {member.initials}
+        {initials}
       </div>
-      <p className="text-sm text-left" style={{ color: '#fff0e8' }}>{member.name}</p>
+      <p className="text-sm text-left" style={{ color: '#fff0e8' }}>{member.fullName}</p>
       <span
         className="ml-auto text-[10px] font-mono px-2 py-0.5 rounded-full"
         style={{
@@ -26,7 +32,7 @@ export default function TeamMemberRow({ member, index, isLast }) {
           border: '1px solid rgba(255,107,61,0.15)',
         }}
       >
-        Member
+        {member.role || 'Member'}
       </span>
     </div>
   )

@@ -1,6 +1,6 @@
 import mongoose, { Schema } from 'mongoose'
 
-const teamMatesSchema = new mongoose.Schema({
+const teamSchema = new mongoose.Schema({
     userId: {
         type: Schema.Types.ObjectId,
         ref: "user",
@@ -14,6 +14,6 @@ const teamMatesSchema = new mongoose.Schema({
     }
 })
 
-const teamMatesModel = mongoose.model('teamMates', teamMatesSchema);
+const teamModel = mongoose.model('teamMates', teamSchema);
 
-export default teamMatesModel;
+export default teamModel;

@@ -34,11 +34,15 @@ const notificationSlice = createSlice({
 				notification.isRead = true;
 			});
 		},
+		markRead: (state, action) => {
+			const notification = state.notifications.find((item) => item._id === action.payload);
+			if (notification) notification.isRead = true;
+		},
 		removeNotification: (state, action) => {
 			state.notifications = state.notifications.filter((notification) => notification._id !== action.payload);
 		}
 	}
 })
 
-export const { setUserId, setMessage, setIsRead, setCreatedAt, setUpdatedAt, setNotifications, markAllRead, removeNotification } = notificationSlice.actions;
+export const { setUserId, setMessage, setIsRead, setCreatedAt, setUpdatedAt, setNotifications, markAllRead, markRead, removeNotification } = notificationSlice.actions;
 export default notificationSlice.reducer;

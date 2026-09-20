@@ -1,7 +1,6 @@
-import { members } from '../../../mockData.js'
 import TeamMemberRow from './TeamMemberRow.jsx'
 
-export default function TeamPreviewCard() {
+export default function TeamPreviewCard({ members }) {
   return (
     <div
       className="w-full rounded-2xl p-5"
@@ -12,18 +11,22 @@ export default function TeamPreviewCard() {
       }}
     >
       <p className="text-xs text-muted mb-4 text-left font-mono">
-        Current team · {members.length} members
+        Recent team · {members.length} members
       </p>
 
       <div className="flex flex-col gap-2">
-        {members.map((m, i) => (
-          <TeamMemberRow
-            key={m.id}
-            member={m}
-            index={i}
-            isLast={i === members.length - 1}
-          />
-        ))}
+        {members.length === 0 ? (
+          <p className="text-sm text-muted py-2">No recent teammates yet.</p>
+        ) : (
+          members.map((member, i) => (
+            <TeamMemberRow
+              key={member._id}
+              member={member}
+              index={i}
+              isLast={i === members.length - 1}
+            />
+          ))
+        )}
       </div>
 
       {/* Disabled invite button */}

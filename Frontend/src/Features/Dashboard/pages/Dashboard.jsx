@@ -39,7 +39,7 @@ const normalizeProject = (project) => ({
   id: project._id,
   name: project.title,
   status: project.status === 'completed' ? 'done' : 'in-progress',
-  dueDate: project.dueDate? new Date(project.dueDate).toLocaleDateString('en-US', { month: 'short', day: 'numeric' }): 'No due date',
+  dueDate: project.dueDate ? new Date(project.dueDate).toLocaleDateString('en-US', { month: 'short', day: 'numeric' }) : 'No due date',
   progress: project.status === 'completed' ? 100 : 0,
 })
 

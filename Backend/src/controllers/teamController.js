@@ -1,5 +1,5 @@
-import teamMatesModel from "../models/teammatesModel.js";
 import userModel from "../models/userModel.js";
+import teamModel from "../models/teamModel.js";
 
 /**
  * @route GET /api/users/?search=...
@@ -47,9 +47,9 @@ export const getRecentTeammates = async (req, res, next) => {
     try {
         const userId = req.user;
 
-        const recentTeamMates = await teamMatesModel.findOne({ userId }).populate("recentTeamMates");
+        const users = await teamModel.findOne({ userId }).populate("recentTeamMates");
 
-        if (!recentTeamMates || recentTeamMates.length < 1) return res.status(200).json({
+        if (!users || users.recentTeamMates.length < 1) return res.status(200).json({
             message: "No recent Team mates available",
             success: true
         })
@@ -57,7 +57,7 @@ export const getRecentTeammates = async (req, res, next) => {
         res.status(200).json({
             message: "Recent teammates fetched successfully",
             success: true,
-            recentTeammates: recentTeamMates
+            users
         });
     } catch (err) {
         next(err);

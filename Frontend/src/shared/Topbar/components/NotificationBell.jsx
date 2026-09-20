@@ -1,13 +1,19 @@
 import { useState, useRef, useEffect } from 'react'
 import { Bell } from 'lucide-react'
-import { notifications as initialNotifications } from '../../../mockData.js'
+import { useSelector } from 'react-redux'
+import useNotification from '../../../Features/Dashboard/hook/useNotification.js'
 
 export default function NotificationBell() {
   const [showNotifs, setShowNotifs] = useState(false)
-  const [notifs, setNotifs] = useState(initialNotifications)
   const dropdownRef = useRef(null)
+  const { getNotifications, markNotificationRead, markAllNotificationsRead } = useNotification()
+  const notifs = useSelector((state) => state.notification.notifications)
 
-  const unreadCount = notifs.filter(n => n.unread).length
+  const unreadCount = notifs.filter((notification) => !notification.isRead).length
+
+  useEffect(() => {
+    getNotifications()
+  }, [getNotifications])
 
   useEffect(() => {
     function handleClickOutside(event) {
@@ -21,8 +27,15 @@ export default function NotificationBell() {
     return () => document.removeEventListener('mousedown', handleClickOutside)
   }, [showNotifs])
 
-  const markAllRead = () => setNotifs(prev => prev.map(n => ({ ...n, unread: false })))
-  const toggleRead = (id) => setNotifs(prev => prev.map(n => n.id === id ? { ...n, unread: !n.unread } : n))
+  const markAllRead = () => markAllNotificationsRead()
+  const markRead = (notification) => {
+    if (!notification.isRead) markNotificationRead(notification._id)
+  }
+
+  const formatTime = (createdAt) => {
+    if (!createdAt) return ''
+    return new Date(createdAt).toLocaleString('en-US', { dateStyle: 'short', timeStyle: 'short' })
+  }
 
   return (
     <div className="relative" ref={dropdownRef}>
@@ -72,28 +85,28 @@ export default function NotificationBell() {
             ) : (
               notifs.map((n) => (
                 <div
-                  key={n.id}
-                  onClick={() => toggleRead(n.id)}
-                  className="flex gap-2.5 p-2 rounded-xl cursor-pointer hover:bg-white/[0.02] transition-all duration-250 text-left"
+                  key={n._id}
+                  onClick={() => markRead(n)}
+                  className="flex gap-2.5 p-2 rounded-xl cursor-pointer hover:bg-white/2 transition-all duration-250 text-left"
                   style={{
-                    border: n.unread ? '1px solid rgba(255, 107, 61, 0.1)' : '1px solid transparent',
-                    background: n.unread ? 'rgba(255, 107, 61, 0.02)' : 'transparent',
+                    border: !n.isRead ? '1px solid rgba(255, 107, 61, 0.1)' : '1px solid transparent',
+                    background: !n.isRead ? 'rgba(255, 107, 61, 0.02)' : 'transparent',
                   }}
                 >
                   <div className="pt-0.5 shrink-0">
                     <div
                       className="w-2 h-2 rounded-full mt-1.5"
                       style={{
-                        background: n.unread ? 'linear-gradient(135deg, #ff6b3d 0%, #ffb347 100%)' : 'transparent',
-                        border: n.unread ? 'none' : '1px solid #7a7070',
+                        background: !n.isRead ? 'linear-gradient(135deg, #ff6b3d 0%, #ffb347 100%)' : 'transparent',
+                        border: !n.isRead ? 'none' : '1px solid #7a7070',
                       }}
                     />
                   </div>
                   <div className="flex-1 min-w-0">
-                    <p className="text-xs leading-normal" style={{ color: n.unread ? '#fff0e8' : '#7a7070' }}>
-                      {n.text}
+                    <p className="text-xs leading-normal" style={{ color: !n.isRead ? '#fff0e8' : '#7a7070' }}>
+                      {n.message}
                     </p>
-                    <span className="text-[9px] font-mono mt-1 block text-muted">{n.time}</span>
+                    <span className="text-[9px] font-mono mt-1 block text-muted">{formatTime(n.createdAt)}</span>
                   </div>
                 </div>
               ))

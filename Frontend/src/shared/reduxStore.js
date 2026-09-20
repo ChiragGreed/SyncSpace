@@ -4,6 +4,7 @@ import invitationReducers from '../Features/Dashboard/state/invitationSlice.js';
 import notificationReducers from '../Features/Dashboard/state/notificationSlice.js';
 import projectReducers from '../Features/Dashboard/state/projectSlice.js';
 import taskReducers from '../Features/Dashboard/state/taskSlice.js';
+import teamReducers from '../Features/Dashboard/state/teamSlice.js';
 
 const reduxStore = configureStore({
     reducer: {
@@ -11,7 +12,8 @@ const reduxStore = configureStore({
         invitation: invitationReducers,
         notification: notificationReducers,
         project: projectReducers,
-        task: taskReducers
+        task: taskReducers,
+        team: teamReducers
     }
 })
 

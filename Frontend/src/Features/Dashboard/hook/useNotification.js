@@ -1,3 +1,4 @@
+import { useCallback } from 'react';
 import { useDispatch } from 'react-redux';
 import {
 	getNotificationsApi,
@@ -5,12 +6,12 @@ import {
 	markAllNotificationsReadApi,
 	deleteNotificationApi
 } from '../service/notificationApi.js';
-import { markAllRead, removeNotification, setCreatedAt, setIsRead, setMessage, setNotifications, setUpdatedAt, setUserId } from '../state/notificationSlice.js';
+import { markAllRead, markRead, removeNotification, setCreatedAt, setIsRead, setMessage, setNotifications, setUpdatedAt, setUserId } from '../state/notificationSlice.js';
 
 const useNotification = () => {
 	const dispatch = useDispatch();
 
-	const updateNotificationState = (notification) => {
+	const updateNotificationState = useCallback((notification) => {
 		if (!notification) return;
 
 		dispatch(setUserId(notification.userId));
@@ -18,31 +19,28 @@ const useNotification = () => {
 		dispatch(setIsRead(notification.isRead));
 		dispatch(setCreatedAt(notification.createdAt));
 		dispatch(setUpdatedAt(notification.updatedAt));
-	}
+	}, [dispatch]);
 
-	const getNotifications = async () => {
+	const getNotifications = useCallback(async () => {
 		const response = await getNotificationsApi();
 		dispatch(setNotifications(response.notifications ?? []));
 		updateNotificationState(response.notifications?.[0]);
-		console.log("useNotification: getNotifications")
-	}
+	}, [dispatch, updateNotificationState]);
 
 	const markNotificationRead = async (notificationId) => {
 		const response = await markNotificationReadApi(notificationId);
+		dispatch(markRead(notificationId));
 		updateNotificationState(response.notification);
-		console.log("useNotification: markNotificationRead")
 	}
 
 	const markAllNotificationsRead = async () => {
 		await markAllNotificationsReadApi();
 		dispatch(markAllRead());
-		console.log("useNotification: markAllNotificationsRead")
 	}
 
 	const deleteNotification = async (notificationId) => {
 		await deleteNotificationApi(notificationId);
 		dispatch(removeNotification(notificationId));
-		console.log("useNotification: deleteNotification")
 	}
 
 	return { getNotifications, markNotificationRead, markAllNotificationsRead, deleteNotification }

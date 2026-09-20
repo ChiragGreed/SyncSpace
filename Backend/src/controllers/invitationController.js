@@ -2,7 +2,7 @@ import projectModel from "../models/projectModel.js"
 import userModel from "../models/userModel.js"
 import invitationModel from "../models/invitationsModel.js";
 import notificationModel from "../models/notificationModel.js";
-import teamMatesModel from "../models/teammatesModel.js";
+import teamMatesModel from "../models/teamModel.js";
 
 /**
  * @route POST /api/invitations

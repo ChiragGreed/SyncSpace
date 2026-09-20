@@ -2,7 +2,7 @@ import express from "express";
 import taskRouter from "./routes/taskRoutes.js";
 import authRouter from "./routes/authRoutes.js";
 import projectRouter from "./routes/projectRoutes.js";
-import userRouter from "./routes/userRoutes.js";
+import teamRouter from "./routes/teamRoutes.js";
 import invitationRouter from "./routes/invitationRoutes.js";
 import notificationRouter from "./routes/notificationRoutes.js";
 import cookieParser from "cookie-parser";
@@ -22,7 +22,7 @@ app.use(cors({
 app.use('/api/auth', authRouter);
 app.use('/api/tasks', taskRouter);
 app.use('/api/projects', projectRouter);
-app.use('/api/users', userRouter);
+app.use('/api/team', teamRouter);
 app.use('/api/invitations', invitationRouter);
 app.use('/api/notifications', notificationRouter);
 
