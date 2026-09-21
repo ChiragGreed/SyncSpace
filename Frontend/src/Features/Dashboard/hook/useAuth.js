@@ -1,6 +1,6 @@
 import { useCallback } from 'react';
 import { useDispatch } from 'react-redux';
-import { getMeApi, loginApi, registerApi } from '../service/authApi.js';
+import { getMeApi, loginApi, registerApi } from '../../Authentication/Service/authApi.js';
 import { setEmail, setFullName, setRole } from '../state/authSlice.js';
 
 

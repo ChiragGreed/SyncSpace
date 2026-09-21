@@ -4,6 +4,9 @@ import ProgressBar from '../../Dashboard/components/ProgressBar.jsx'
 import { useEffect } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
 import useProject from '../hook/useProject.js'
+import useTask from '../../Tasks/hook/useTask.js'
+import useInvitation from '../../Dashboard/hook/useInvitation.js'
+import useTeam from '../../TeamMates/hook/useTeam.js'
 import { useSelector } from 'react-redux'
 
 const AVATAR_BACKGROUNDS = [
@@ -70,14 +73,25 @@ function Avatar({ member, index = 0, size = 'normal' }) {
 export default function ProjectDetail() {
     const [projectTasks, setProjectTasks] = useState([])
     const [showTaskForm, setShowTaskForm] = useState(false)
-    const [taskTitle, setTaskTitle] = useState('')
+    const [taskForm, setTaskForm] = useState({
+        title: '',
+        description: '',
+        priority: 'medium',
+        dueDate: '',
+        assignee: '',
+    })
     const [showInviteForm, setShowInviteForm] = useState(false)
     const [inviteEmail, setInviteEmail] = useState('')
     const [showMenu, setShowMenu] = useState(false)
+    const [priorityMenuOpen, setPriorityMenuOpen] = useState(false)
+    const [assigneeMenuOpen, setAssigneeMenuOpen] = useState(false)
     const [notice, setNotice] = useState('')
     const [isEditing, setIsEditing] = useState(false)
     const [form, setForm] = useState({ title: '', description: '', dueDate: '' })
     const { getProject, updateProject } = useProject();
+    const { createTask } = useTask();
+    const { createInvitation } = useInvitation();
+    const { searchUsers } = useTeam();
     const { projectId } = useParams();
     const navigate = useNavigate();
     const { title, admin, description, status, members, dueDate, projectTasks: storedTasks } = useSelector((state) => state.project);
@@ -94,6 +108,18 @@ export default function ProjectDetail() {
         setForm({ title: title || '', description: description || '', dueDate: toInputDate(dueDate) })
     }, [title, description, dueDate]);
 
+    useEffect(() => {
+        if (!showTaskForm) {
+            setTaskForm({
+                title: '',
+                description: '',
+                priority: 'medium',
+                dueDate: '',
+                assignee: members?.[0]?._id || members?.[0]?.id || '',
+            })
+        }
+    }, [showTaskForm, members])
+
     const normalizedStatus = normalizeStatus(status)
     const statusStyle = STATUS_STYLES[normalizedStatus] ?? STATUS_STYLES['in-progress']
     const completedTasks = projectTasks.filter((task) => task.statuses === 'done').length
@@ -101,23 +127,57 @@ export default function ProjectDetail() {
         ? 100
         : projectTasks.length ? Math.round((completedTasks / projectTasks.length) * 100) : 0
 
-    const addTask = (event) => {
+    const addTask = async (event) => {
         event.preventDefault()
-        if (!taskTitle.trim()) return
-        setProjectTasks((current) => [
-            ...current,
-            { id: `new-${Date.now()}`, title: taskTitle.trim(), statuses: 'todo', priority: 'medium', due: 'No date', assignee: '' },
-        ])
-        setTaskTitle('')
+
+        if (!taskForm.title.trim() || !projectId) return
+
+        const assignee = taskForm.assignee || members?.[0]?._id || members?.[0]?.id
+
+        await createTask(
+            taskForm.title.trim(),
+            taskForm.description.trim(),
+            projectId,
+            'toDo',
+            taskForm.priority,
+            assignee,
+            taskForm.dueDate || undefined
+        )
+
+        await getProject(projectId)
         setShowTaskForm(false)
+        setNotice('Task created successfully')
     }
 
-    const inviteTeammate = (event) => {
+    const inviteTeammate = async (event) => {
         event.preventDefault()
         if (!inviteEmail.trim()) return
-        setNotice(`Invite sent for ${inviteEmail.trim()}`)
-        setInviteEmail('')
-        setShowInviteForm(false)
+
+        const email = inviteEmail.trim().toLowerCase()
+
+        try {
+            const users = await searchUsers(email)
+            const recipient = users.find((user) => user.email?.toLowerCase() === email)
+
+            if (!recipient) {
+                setNotice(`No teammate found for ${inviteEmail.trim()}`)
+                return
+            }
+
+            const response = await createInvitation(projectId, [recipient._id])
+            const skippedInvitation = response?.skipped?.[0]
+
+            if (skippedInvitation) {
+                setNotice(skippedInvitation.reason || 'This teammate could not be invited')
+                return
+            }
+
+            setNotice(`Invitation sent to ${recipient.fullName || recipient.email}`)
+            setInviteEmail('')
+            setShowInviteForm(false)
+        } catch (error) {
+            setNotice(error.response?.data?.message || 'The invitation could not be sent')
+        }
     }
 
     const toggleTask = (taskId) => {
@@ -140,7 +200,7 @@ export default function ProjectDetail() {
                 <button
                     type="button"
                     className="flex items-center gap-2 text-xs text-muted transition-colors hover:text-ink"
-                    onClick={()=>{navigate('/')}}
+                    onClick={() => { navigate('/') }}
                 >
                     <ArrowLeft className="h-4 w-4" />
                     All projects
@@ -198,7 +258,337 @@ export default function ProjectDetail() {
             <div className="grid gap-5 lg:grid-cols-[1.35fr_0.65fr]">
                 <section className="rounded-2xl p-5 md:p-6" style={{ background: 'linear-gradient(145deg, rgba(26,20,16,0.95) 0%, rgba(18,14,10,0.9) 100%)', border: '1px solid rgba(255,107,61,0.14)' }}>
                     <div className="mb-4 flex items-center justify-between"><div><h2 className="font-display font-semibold text-ink">Project tasks</h2><p className="mt-1 text-xs text-muted">Keep the team moving one task at a time.</p></div><button type="button" onClick={() => setShowTaskForm((current) => !current)} className="flex items-center gap-1.5 rounded-lg px-3 py-2 text-xs font-semibold text-white transition-all hover:brightness-110" style={{ background: 'linear-gradient(135deg, #ff6b3d 0%, #ffb347 100%)', boxShadow: '0 3px 12px rgba(255,107,61,0.25)' }}><Plus className="h-3.5 w-3.5" /> Add task</button></div>
-                    {showTaskForm && <form onSubmit={addTask} className="mb-4 flex gap-2"><input autoFocus value={taskTitle} onChange={(event) => setTaskTitle(event.target.value)} placeholder="What needs to be done?" className="min-w-0 flex-1 rounded-lg px-3 py-2 text-sm outline-none placeholder:text-muted" style={{ background: 'rgba(255,107,61,0.05)', border: '1px solid rgba(255,107,61,0.2)', color: '#fff0e8' }} /><button type="submit" className="rounded-lg px-3 text-xs font-semibold text-white" style={{ background: '#ff6b3d' }}>Add</button></form>}
+                    {showTaskForm && (
+                        <div
+                            className="fixed inset-0 z-50 flex items-center justify-center bg-black/75 px-4 backdrop-blur-sm"
+                            role="dialog"
+                            aria-modal="true"
+                            aria-labelledby="create-task-title"
+                            onClick={() => setShowTaskForm(false)}
+                        >
+                            <div
+                                className="w-full max-w-md rounded-2xl p-6"
+                                style={{
+                                    background: 'linear-gradient(145deg, rgba(26,20,16,0.98) 0%, rgba(18,14,10,0.95) 100%)',
+                                    border: '1px solid rgba(255, 107, 61, 0.18)',
+                                    boxShadow: '0 8px 32px rgba(255, 107, 61, 0.12)',
+                                }}
+                                onClick={(event) => event.stopPropagation()}
+                            >
+                                <div className="mb-5 flex items-center justify-between">
+                                    <h2 id="create-task-title" className="font-display text-lg font-semibold" style={{ color: '#fff0e8' }}>
+                                        Create task
+                                    </h2>
+                                    <button
+                                        type="button"
+                                        onClick={() => setShowTaskForm(false)}
+                                        aria-label="Close task form"
+                                        className="rounded-lg p-1.5 text-muted transition-all duration-200"
+                                        style={{ border: '1px solid rgba(255, 107, 61, 0.1)' }}
+                                    >
+                                        <X className="h-4 w-4" strokeWidth={2} />
+                                    </button>
+                                </div>
+
+                                <form onSubmit={addTask} className="flex flex-col gap-4">
+                                    <div>
+                                        <label htmlFor="task-title" className="mb-1.5 block text-xs text-muted">
+                                            Task title
+                                        </label>
+                                        <input
+                                            id="task-title"
+                                            autoFocus
+                                            required
+                                            type="text"
+                                            value={taskForm.title}
+                                            onChange={(event) => setTaskForm((current) => ({ ...current, title: event.target.value }))}
+                                            placeholder="e.g. Build onboarding flow"
+                                            className="w-full rounded-lg px-3 py-2 text-sm outline-none placeholder:text-muted"
+                                            style={{
+                                                background: 'rgba(255, 107, 61, 0.04)',
+                                                border: '1px solid rgba(255, 107, 61, 0.15)',
+                                                color: '#fff0e8',
+                                            }}
+                                        />
+                                    </div>
+
+                                    <div>
+                                        <label htmlFor="task-description" className="mb-1.5 block text-xs text-muted">
+                                            Description
+                                        </label>
+                                        <textarea
+                                            id="task-description"
+                                            rows={3}
+                                            value={taskForm.description}
+                                            onChange={(event) => setTaskForm((current) => ({ ...current, description: event.target.value }))}
+                                            placeholder="Describe what needs to be done"
+                                            className="w-full resize-none rounded-lg px-3 py-2 text-sm outline-none placeholder:text-muted"
+                                            style={{
+                                                background: 'rgba(255, 107, 61, 0.04)',
+                                                border: '1px solid rgba(255, 107, 61, 0.15)',
+                                                color: '#fff0e8',
+                                            }}
+                                        />
+                                    </div>
+
+                                    <div className="grid gap-4 sm:grid-cols-2">
+                                        <div>
+                                            <label
+                                                htmlFor="task-priority"
+                                                className="mb-1.5 block text-xs text-muted"
+                                            >
+                                                Priority
+                                            </label>
+
+                                            <div className="relative">
+                                                <button
+                                                    id="task-priority"
+                                                    type="button"
+                                                    onClick={() => {
+                                                        setPriorityMenuOpen((open) => !open)
+                                                        setAssigneeMenuOpen(false)
+                                                    }}
+                                                    className="flex w-full items-center justify-between rounded-lg px-3 py-2 text-sm outline-none transition-all duration-200"
+                                                    style={{
+                                                        background: 'linear-gradient(145deg, rgba(18,12,10,0.96) 0%, rgba(22,16,12,0.9) 100%)',
+                                                        border: '1px solid rgba(255, 107, 61, 0.18)',
+                                                        boxShadow: 'inset 0 0 0 1px rgba(255, 107, 61, 0.04)',
+                                                        color: '#fff0e8',
+                                                    }}
+                                                    aria-label="Select task priority"
+                                                    aria-expanded={priorityMenuOpen}
+                                                >
+                                                    <span className="capitalize">
+                                                        {taskForm.priority}
+                                                    </span>
+
+                                                    <ChevronDown
+                                                        className={`h-4 w-4 text-[#ffb347] transition-transform duration-200 ${priorityMenuOpen ? 'rotate-180' : ''
+                                                            }`}
+                                                    />
+                                                </button>
+
+                                                {priorityMenuOpen && (
+                                                    <div
+                                                        className="absolute left-0 right-0 top-full z-30 mt-1 overflow-hidden rounded-xl p-1"
+                                                        style={{
+                                                            background:
+                                                                'linear-gradient(145deg, rgba(26,20,16,0.98) 0%, rgba(18,14,10,0.98) 100%)',
+                                                            border: '1px solid rgba(255,107,61,0.2)',
+                                                            boxShadow: '0 8px 24px rgba(0,0,0,0.35)',
+                                                        }}
+                                                    >
+                                                        {['low', 'medium', 'high'].map((priority) => {
+                                                            const priorityStyle = PRIORITY_STYLES[priority]
+
+                                                            return (
+                                                                <button
+                                                                    key={priority}
+                                                                    type="button"
+                                                                    onClick={() => {
+                                                                        setTaskForm((current) => ({
+                                                                            ...current,
+                                                                            priority,
+                                                                        }))
+                                                                        setPriorityMenuOpen(false)
+                                                                    }}
+                                                                    className="flex w-full items-center justify-between rounded-lg px-3 py-2 text-left text-sm capitalize transition-colors hover:bg-orange-500/8"
+                                                                    style={{
+                                                                        color: priorityStyle.color,
+                                                                        background:
+                                                                            taskForm.priority === priority
+                                                                                ? priorityStyle.background
+                                                                                : 'transparent',
+                                                                    }}
+                                                                >
+                                                                    <span>{priority}</span>
+
+                                                                    {taskForm.priority === priority && (
+                                                                        <Check className="h-3.5 w-3.5" />
+                                                                    )}
+                                                                </button>
+                                                            )
+                                                        })}
+                                                    </div>
+                                                )}
+                                            </div>
+                                        </div>
+
+                                        <div>
+                                            <label htmlFor="task-date" className="mb-1.5 block text-xs text-muted">
+                                                Due date
+                                            </label>
+                                            <input
+                                                id="task-date"
+                                                type="date"
+                                                value={taskForm.dueDate}
+                                                onChange={(event) => setTaskForm((current) => ({ ...current, dueDate: event.target.value }))}
+                                                className="w-full rounded-lg px-3 py-2 text-sm outline-none"
+                                                style={{
+                                                    background: 'rgba(255, 107, 61, 0.04)',
+                                                    border: '1px solid rgba(255, 107, 61, 0.15)',
+                                                    color: '#fff0e8',
+                                                }}
+                                            />
+                                        </div>
+                                    </div>
+
+                                    <div>
+                                        <label
+                                            htmlFor="task-assignee"
+                                            className="mb-1.5 block text-xs text-muted"
+                                        >
+                                            Assign to
+                                        </label>
+
+                                        <div className="relative">
+                                            <button
+                                                id="task-assignee"
+                                                type="button"
+                                                onClick={() => {
+                                                    setAssigneeMenuOpen((open) => !open)
+                                                    setPriorityMenuOpen(false)
+                                                }}
+                                                className="flex w-full items-center justify-between rounded-lg px-3 py-2 text-sm outline-none transition-all duration-200"
+                                                style={{
+                                                    background:
+                                                        'linear-gradient(145deg, rgba(18,12,10,0.96) 0%, rgba(22,16,12,0.9) 100%)',
+                                                    border: '1px solid rgba(255, 107, 61, 0.18)',
+                                                    boxShadow: 'inset 0 0 0 1px rgba(255, 107, 61, 0.04)',
+                                                    color: '#fff0e8',
+                                                }}
+                                                aria-label="Select task assignee"
+                                                aria-expanded={assigneeMenuOpen}
+                                            >
+                                                <span className="truncate">
+                                                    {taskForm.assignee
+                                                        ? (
+                                                            members?.find(
+                                                                (member) =>
+                                                                    (member._id || member.id) === taskForm.assignee
+                                                            )?.fullName ||
+                                                            members?.find(
+                                                                (member) =>
+                                                                    (member._id || member.id) === taskForm.assignee
+                                                            )?.name ||
+                                                            'Team member'
+                                                        )
+                                                        : 'Unassigned'}
+                                                </span>
+
+                                                <ChevronDown
+                                                    className={`h-4 w-4 shrink-0 text-[#ffb347] transition-transform duration-200 ${assigneeMenuOpen ? 'rotate-180' : ''
+                                                        }`}
+                                                />
+                                            </button>
+
+                                            {assigneeMenuOpen && (
+                                                <div
+                                                    className="absolute left-0 right-0 top-full z-30 mt-1 max-h-48 overflow-y-auto overflow-hidden rounded-xl p-1"
+                                                    style={{
+                                                        background:
+                                                            'linear-gradient(145deg, rgba(26,20,16,0.98) 0%, rgba(18,14,10,0.98) 100%)',
+                                                        border: '1px solid rgba(255,107,61,0.2)',
+                                                        boxShadow: '0 8px 24px rgba(0,0,0,0.35)',
+                                                    }}
+                                                >
+                                                    <button
+                                                        type="button"
+                                                        onClick={() => {
+                                                            setTaskForm((current) => ({
+                                                                ...current,
+                                                                assignee: '',
+                                                            }))
+                                                            setAssigneeMenuOpen(false)
+                                                        }}
+                                                        className="flex w-full items-center justify-between rounded-lg px-3 py-2 text-left text-sm transition-colors hover:bg-orange-500/8"
+                                                        style={{
+                                                            color: '#a99d98',
+                                                            background:
+                                                                taskForm.assignee === ''
+                                                                    ? 'rgba(255,107,61,0.08)'
+                                                                    : 'transparent',
+                                                        }}
+                                                    >
+                                                        <span>Unassigned</span>
+
+                                                        {taskForm.assignee === '' && (
+                                                            <Check className="h-3.5 w-3.5 text-[#ffb347]" />
+                                                        )}
+                                                    </button>
+
+                                                    {members?.map((member) => {
+                                                        const memberId = member._id || member.id
+                                                        const memberName =
+                                                            member.fullName ||
+                                                            member.name ||
+                                                            'Team member'
+
+                                                        const isSelected =
+                                                            taskForm.assignee === memberId
+
+                                                        return (
+                                                            <button
+                                                                key={memberId}
+                                                                type="button"
+                                                                onClick={() => {
+                                                                    setTaskForm((current) => ({
+                                                                        ...current,
+                                                                        assignee: memberId,
+                                                                    }))
+                                                                    setAssigneeMenuOpen(false)
+                                                                }}
+                                                                className="flex w-full items-center justify-between gap-3 rounded-lg px-3 py-2 text-left text-sm transition-colors hover:bg-orange-500/8"
+                                                                style={{
+                                                                    color: '#fff0e8',
+                                                                    background: isSelected
+                                                                        ? 'rgba(255,107,61,0.08)'
+                                                                        : 'transparent',
+                                                                }}
+                                                            >
+                                                                <span className="truncate">
+                                                                    {memberName}
+                                                                </span>
+
+                                                                {isSelected && (
+                                                                    <Check className="h-3.5 w-3.5 shrink-0 text-[#ffb347]" />
+                                                                )}
+                                                            </button>
+                                                        )
+                                                    })}
+                                                </div>
+                                            )}
+                                        </div>
+                                    </div>
+
+                                    <div className="mt-1 flex items-center gap-3">
+                                        <button
+                                            type="button"
+                                            onClick={() => setShowTaskForm(false)}
+                                            className="flex-1 rounded-xl py-2.5 text-sm font-medium"
+                                            style={{
+                                                background: 'transparent',
+                                                border: '1px solid rgba(255, 107, 61, 0.15)',
+                                                color: '#7a7070',
+                                            }}
+                                        >
+                                            Cancel
+                                        </button>
+                                        <button
+                                            type="submit"
+                                            className="flex-1 rounded-xl py-2.5 text-sm font-semibold text-white transition-all duration-200 hover:brightness-110"
+                                            style={{
+                                                background: 'linear-gradient(135deg, #ff6b3d 0%, #ffb347 100%)',
+                                                boxShadow: '0 4px 14px rgba(255, 107, 61, 0.35)',
+                                            }}
+                                        >
+                                            Create task
+                                        </button>
+                                    </div>
+                                </form>
+                            </div>
+                        </div>
+                    )}
                     <div>{projectTasks.map((task) => { const priority = PRIORITY_STYLES[task.priority] ?? PRIORITY_STYLES.low; return <div key={task.id} role="button" tabIndex={0} onClick={() => navigate(`/task/${task.id}`)} onKeyDown={(event) => { if (event.key === 'Enter' || event.key === ' ') navigate(`/task/${task.id}`) }} className="flex cursor-pointer items-center gap-3 border-b py-3 last:border-0 transition-colors hover:bg-orange-500/5" style={{ borderColor: 'rgba(255,107,61,0.08)' }}><button type="button" aria-label={`Mark ${task.title} ${task.statuses === 'done' ? 'to do' : 'complete'}`} onClick={(event) => { event.stopPropagation(); toggleTask(task.id) }} className="flex h-5 w-5 shrink-0 items-center justify-center rounded-full" style={{ background: task.statuses === 'done' ? 'linear-gradient(135deg, #ff6b3d, #ffb347)' : 'transparent', border: task.statuses === 'done' ? 'none' : '1px solid rgba(255,107,61,0.35)' }}>{task.statuses === 'done' && <Check className="h-3 w-3 text-white" />}</button><div className="min-w-0 flex-1"><p className={`truncate text-sm ${task.statuses === 'done' ? 'text-muted line-through' : 'text-ink'}`}>{task.title}</p><p className="mt-1 text-[11px] text-muted">Due {task.due || 'No date'}</p></div><span className="hidden rounded-full px-2 py-1 font-mono text-[10px] sm:inline" style={{ color: priority.color, background: priority.background }}>{task.priority}</span>{task.assignee && <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full font-mono text-[10px] text-white" style={{ background: 'linear-gradient(135deg, #ff6b3d, #ffb347)' }}>{typeof task.assignee === 'string' && task.assignee.length <= 3 ? task.assignee : initialsFor(task.assignee)}</span>}<ChevronDown className="h-4 w-4 shrink-0 text-muted" /></div> })}</div>
                 </section>
 

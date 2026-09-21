@@ -5,8 +5,8 @@ const api = axios.create({
     withCredentials: true
 })
 
-export const createTaskApi = async (title, description, projectId, status, priority, assignee) => {
-    const response = await api.post('/', { title, description, projectId, status, priority, assignee });
+export const createTaskApi = async (title, description, projectId, status, priority, assignee, dueDate) => {
+    const response = await api.post('/', { title, description, projectId, status, priority, assignee, dueDate });
     return response.data;
 }
 

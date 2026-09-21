@@ -18,8 +18,8 @@ const useTask = () => {
 		dispatch(setDueDate(task.dueDate));
 	}
 
-	const createTask = async (title, description, projectId, status, priority, assignee) => {
-		const response = await createTaskApi(title, description, projectId, status, priority, assignee);
+	const createTask = async (title, description, projectId, status, priority, assignee, dueDate) => {
+		const response = await createTaskApi(title, description, projectId, status, priority, assignee, dueDate);
 		updateTaskState(response.task);
 		console.log("useTask: createTask")
 	}

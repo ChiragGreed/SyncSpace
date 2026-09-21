@@ -225,7 +225,7 @@ export default function Dashboard({ query }) {
         {/* Tasks */}
         <section id="tasks-section" aria-label="Tasks" className="scroll-mt-20">
           <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-4">
-            <h2 className="font-display font-semibold text-ink">Recent tasks</h2>
+            <h2 className="font-display font-semibold text-ink">Your tasks</h2>
             <FilterBar filters={TASK_FILTERS} active={taskFilter} onChange={setTaskFilter} label="Filter tasks" />
           </div>
 
