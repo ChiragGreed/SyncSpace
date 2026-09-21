@@ -1,3 +1,5 @@
+import { useNavigate } from "react-router-dom";
+
 const PRIORITY_CONFIG = {
   high: { bg: 'rgba(255, 107, 61, 0.15)', color: '#ff6b3d', border: 'rgba(255, 107, 61, 0.3)' },
   medium: { bg: 'rgba(255, 179, 71, 0.12)', color: '#ffb347', border: 'rgba(255, 179, 71, 0.25)' },
@@ -20,9 +22,11 @@ const STATUS_DOT = {
 export default function TaskRow({ task, user }) {
   const assignee = user;
   const priority = PRIORITY_CONFIG[task.priority] ?? PRIORITY_CONFIG.low
+  const navigate = useNavigate();
 
   return (
     <div
+      onClick={() => { navigate(`/task/${task._id}`) }}
       className="flex items-center gap-3 py-3 px-1 transition-all duration-200 hover:bg-orange-500/[0.03] rounded-lg last:border-0"
       style={{ borderBottom: '1px solid rgba(255, 107, 61, 0.08)' }}
     >

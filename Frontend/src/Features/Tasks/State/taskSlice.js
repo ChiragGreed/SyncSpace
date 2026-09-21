@@ -9,7 +9,8 @@ const taskSlice = createSlice({
 		description: null,
 		projectId: null,
 		status: null,
-		priority: null
+		priority: null,
+		dueDate: null
 	},
 	reducers: {
 		setAssignee: (state, action) => {
@@ -30,6 +31,9 @@ const taskSlice = createSlice({
 		setPriority: (state, action) => {
 			state.priority = action.payload;
 		},
+		setDueDate: (state, action) => {
+			state.dueDate = action.payload;
+		},
 		setTasks: (state, action) => {
 			state.tasks = action.payload;
 		},
@@ -39,5 +43,5 @@ const taskSlice = createSlice({
 	}
 })
 
-export const { setAssignee, setTitle, setDescription, setProjectId, setStatus, setPriority, setTasks, removeTask } = taskSlice.actions;
+export const { setAssignee, setTitle, setDescription, setProjectId, setStatus, setPriority, setDueDate, setTasks, removeTask } = taskSlice.actions;
 export default taskSlice.reducer;

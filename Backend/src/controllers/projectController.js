@@ -57,43 +57,21 @@ export const getProject = async (req, res, next) => {
     try {
         const { projectId } = req.params;
 
-        const project = await projectModel.findById(projectId);
+        const project = await projectModel.findById(projectId).populate("admin", "fullName email role").populate("members", "fullName email role");
 
         if (!project) return res.status(404).json({
             message: `Project does not exist with id ${projectId}`,
             success: false
         })
 
+        const tasks = await taskModel.find({ projectId }).populate("assignee", "fullName email role");
+
         res.status(200).json({
             message: "Project fetched successfully",
             success: true,
-            project
-        })
-    } catch (err) {
-        next(err);
-    }
-}
-
-/**
- * @route GET /api/projects/:projectId/task
- * Return all tasks associated with a project.
- */
-export const getProjectTasks = async (req, res, next) => {
-    try {
-        const { projectId } = req.params;
-        const tasks = await taskModel.find({ projectId });
-
-        if (!tasks || tasks.length === 0) return res.status(404).json({
-            message: `No tasks found for project with id ${projectId}`,
-            success: false
-        });
-
-        res.status(200).json({
-            message: "Project Tasks fetched successfully",
-            success: true,
+            project,
             tasks
         })
-
     } catch (err) {
         next(err);
     }
@@ -107,7 +85,7 @@ export const updateProject = async (req, res, next) => {
     try {
         const { projectId } = req.params;
         const userId = req.user;
-        const project = await prjectModel.findById(projectId);
+        const project = await projectModel.findById(projectId);
 
         if (!project) return res.status(404).json({
             message: `Project does not exist with id ${projectId}`,
@@ -120,13 +98,19 @@ export const updateProject = async (req, res, next) => {
                 success: false
             })
 
-        await project.updateOne(req.body);
+        const updatedProject = await projectModel.findByIdAndUpdate(
+            projectId,
+            req.body,
+            { new: true }
+        )
+            .populate("admin", "fullName email role")
+            .populate("members", "fullName email role");
 
 
         res.status(200).json({
             message: "Project updated successfully",
             success: true,
-            project
+            project: updatedProject
         })
     } catch (err) {
         next(err);

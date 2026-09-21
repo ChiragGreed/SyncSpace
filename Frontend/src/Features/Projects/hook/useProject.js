@@ -1,7 +1,7 @@
 import { useCallback } from 'react';
 import { useDispatch } from 'react-redux';
 import { createProjectApi, getProjectsApi, getProjectApi, getProjectTasksApi, updateProjectApi, updateProjectStatusApi, deleteProjectApi } from '../service/projectApi.js';
-import { removeProject, setAdmin, setDescription, setDueDate, setMembers, setProjectTasks, setProjects, setStatus, setTitle } from '../state/projectSlice.js';
+import { removeProject, setAdmin, setDescription, setDueDate, setMembers, setProjectTasks, setProjects, setStatus, setTitle } from '../State/projectSlice.js';
 
 const useProject = () => {
 	const dispatch = useDispatch();
@@ -28,17 +28,11 @@ const useProject = () => {
 		dispatch(setProjects(response.projects ?? []));
 	}, [dispatch]);
 
-	const getProject = async (projectId) => {
+	const getProject = useCallback(async (projectId) => {
 		const response = await getProjectApi(projectId);
 		updateProjectState(response.project);
-		console.log("useProject: getProject")
-	}
-
-	const getProjectTasks = async (projectId) => {
-		const response = await getProjectTasksApi(projectId);
 		dispatch(setProjectTasks(response.tasks ?? []));
-		console.log("useProject: getProjectTasks")
-	}
+	}, [dispatch])
 
 	const updateProject = async (projectId, data) => {
 		const response = await updateProjectApi(projectId, data);
@@ -58,7 +52,7 @@ const useProject = () => {
 		console.log("useProject: deleteProject")
 	}
 
-	return { createProject, getProjects, getProject, getProjectTasks, updateProject, updateProjectStatus, deleteProject }
+	return { createProject, getProjects, getProject, updateProject, updateProjectStatus, deleteProject }
 }
 
 export default useProject

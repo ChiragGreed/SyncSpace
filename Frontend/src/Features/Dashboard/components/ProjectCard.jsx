@@ -1,6 +1,7 @@
 import { CalendarDays } from 'lucide-react'
 import ProgressBar from './ProgressBar.jsx'
 import SyncPulse from './SyncPulse.jsx'
+import { useNavigate } from 'react-router-dom'
 
 const STATUS_CONFIG = {
   'in-progress': {
@@ -24,6 +25,7 @@ const AVATAR_BG = [
 ]
 
 export default function ProjectCard({ project }) {
+  const navigate = useNavigate();
   const status = STATUS_CONFIG[project.status] ?? STATUS_CONFIG['in-progress']
 
   return (
@@ -36,6 +38,7 @@ export default function ProjectCard({ project }) {
       }}
       onMouseEnter={e => e.currentTarget.style.borderColor = 'rgba(255, 107, 61, 0.35)'}
       onMouseLeave={e => e.currentTarget.style.borderColor = 'rgba(255, 107, 61, 0.14)'}
+      onClick={() => { navigate(`/project/${project._id}`) }}
     >
       <div className="flex items-start justify-between gap-2">
         <div>

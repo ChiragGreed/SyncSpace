@@ -14,8 +14,8 @@ import DeadlineCard from '../components/DeadlineCard.jsx'
 import DashboardBackground from '../components/DashboardBackground.jsx'
 import TeammatesPage from '../../TeamMates/pages/TeamMates.jsx'
 import useAuth from '../hook/useAuth.js'
-import useProject from '../hook/useProject.js'
-import useTask from '../hook/useTask.js'
+import useProject from '../../Projects/hook/useProject.js'
+import useTask from '../../Tasks/hook/useTask.js'
 import { useSelector } from 'react-redux'
 
 const PROJECT_FILTERS = [

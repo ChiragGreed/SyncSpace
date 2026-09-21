@@ -1,6 +1,9 @@
+import { useNavigate } from 'react-router-dom'
 import TeamMemberRow from './TeamMemberRow.jsx'
 
 export default function TeamPreviewCard({ members }) {
+
+  const navigate = useNavigate();
   return (
     <div
       className="w-full rounded-2xl p-5"
@@ -29,16 +32,15 @@ export default function TeamPreviewCard({ members }) {
         )}
       </div>
 
-      {/* Disabled invite button */}
       <button
-        disabled
-        className="w-full mt-4 text-sm font-semibold rounded-xl py-2.5 opacity-40 cursor-not-allowed"
+        onClick={() => navigate('/team/search')}
+        className="w-full mt-4 text-sm font-semibold rounded-xl py-2.5 opacity-100 cursor-pointer"
         style={{
           background: 'linear-gradient(135deg, #ff6b3d 0%, #ffb347 100%)',
           color: 'white',
         }}
       >
-        + Invite teammate — Coming soon
+        + Add More Team Mates
       </button>
     </div>
   )

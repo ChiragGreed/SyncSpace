@@ -58,6 +58,24 @@ body {
   background-attachment: fixed;
 }
 
+button,
+[role='button'],
+a,
+summary,
+select,
+option,
+input[type='button'],
+input[type='submit'],
+input[type='reset'] {
+  cursor: pointer;
+}
+
+button:disabled,
+select:disabled,
+input:disabled {
+  cursor: not-allowed;
+}
+
 ::-webkit-scrollbar {
   width: 6px;
   height: 6px;

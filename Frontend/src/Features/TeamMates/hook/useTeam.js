@@ -1,7 +1,7 @@
 import { useCallback } from 'react';
 import { useDispatch } from 'react-redux';
 import { getRecentTeammatesApi, searchUsersApi } from '../service/teamApi.js';
-import { setRecentTeammates, setUsers } from '../state/teamSlice.js';
+import { setRecentTeammates, setUsers } from '../../TeamMates/state/teamSlice.js';
 
 const useTeam = () => {
     const dispatch = useDispatch();

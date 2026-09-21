@@ -1,7 +1,7 @@
 import { useCallback } from 'react';
 import { useDispatch } from 'react-redux';
 import {createTaskApi,getTasksApi,getTaskApi,updateTaskApi,updateTaskStatusApi,deleteTaskApi} from '../service/taskApi.js';
-import { removeTask, setAssignee, setDescription, setPriority, setProjectId, setStatus, setTasks, setTitle } from '../state/taskSlice.js';
+import { removeTask, setAssignee, setDescription, setDueDate, setPriority, setProjectId, setStatus, setTasks, setTitle } from '../State/taskSlice.js';
 
 const useTask = () => {
 	const dispatch = useDispatch();
@@ -15,6 +15,7 @@ const useTask = () => {
 		dispatch(setProjectId(task.projectId));
 		dispatch(setStatus(task.status));
 		dispatch(setPriority(task.priority));
+		dispatch(setDueDate(task.dueDate));
 	}
 
 	const createTask = async (title, description, projectId, status, priority, assignee) => {
@@ -29,11 +30,10 @@ const useTask = () => {
 		console.log(response);
 	}, [dispatch]);
 
-	const getTask = async (taskId) => {
+	const getTask = useCallback(async (taskId) => {
 		const response = await getTaskApi(taskId);
 		updateTaskState(response.task);
-		console.log("useTask: getTask")
-	}
+	}, [dispatch])
 
 	const updateTask = async (taskId, data) => {
 		const response = await updateTaskApi(taskId, data);

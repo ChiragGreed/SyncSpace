@@ -76,7 +76,9 @@ export const createInvitations = async (req, res, next) => {
 export const getReceivedInvitations = async (req, res, next) => {
     try {
         const userId = req.user;
-        const received = await invitationModel.find({ receiverId: userId, status: "pending" });
+        const received = await invitationModel.find({ receiverId: userId })
+            .populate("senderId", "fullName email userId")
+            .populate("projectId", "title");
 
         if (!received || received.length < 1) return res.status(200).json({
             message: "No invitations received",
@@ -100,7 +102,9 @@ export const getReceivedInvitations = async (req, res, next) => {
 export const getSentInvitations = async (req, res, next) => {
     try {
         const userId = req.user;
-        const sent = await invitationModel.find({ senderId: userId });
+        const sent = await invitationModel.find({ senderId: userId })
+            .populate("receiverId", "fullName email userId")
+            .populate("projectId", "title");
 
         if (!sent || sent.length < 1) return res.status(200).json({
             message: "No invitations sent",

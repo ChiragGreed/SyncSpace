@@ -10,7 +10,7 @@ export const createTask = async (req, res, next) => {
         const userId = req.user;
 
         // projectId is optional in task creation, to create individual tasks separate from any project.
-        const { title, projectId, description, status, priority, assignee = userId } = req.body;
+        const { title, projectId, description, status, priority, dueDate, assignee = userId } = req.body;
 
         if (projectId) {
             const project = await projectModel.findById(projectId);
@@ -21,7 +21,7 @@ export const createTask = async (req, res, next) => {
             })
         }
         
-        const task = await taskModel.create({ title, description, projectId, assignee, status, priority });
+        const task = await taskModel.create({ title, description, projectId, assignee, status, priority, dueDate });
 
         res.status(201).json({
             message: "Task created successfully",
@@ -85,7 +85,10 @@ export const getTask = async (req, res, next) => {
     try {
         const { taskId } = req.params;
 
-        const task = await taskModel.findOne({ _id: taskId });
+        const task = await taskModel
+            .findOne({ _id: taskId })
+            .populate("assignee", "fullName email role")
+            .populate("projectId", "title description status dueDate");
 
         if (!task) return res.status(404).json({
             message: `Task do not exist with ${taskId}`,
@@ -139,7 +142,7 @@ export const updateTask = async (req, res, next) => {
             })
         }
 
-        const task = await taskModel.findByIdAndUpdate({ _id: taskId }, req.body);
+        const task = await taskModel.findByIdAndUpdate({ _id: taskId }, req.body, { new: true }).populate("assignee", "fullName email role").populate("projectId", "title description status dueDate");
 
         res.status(200).json({
             message: "Task updated successfully",

@@ -120,6 +120,7 @@ export const validateCreateTask = [
     optionalEnum('status', TASK_STATUSES),
     optionalEnum('priority', TASK_PRIORITIES),
     optionalNonEmptyString('projectId', 'projectId must be a non-empty string'),
+    optionalDate('dueDate'),
     handleValidationErrors
 ];
 
@@ -130,6 +131,7 @@ export const validateUpdateTask = [
     optionalEnum('status', TASK_STATUSES),
     optionalEnum('priority', TASK_PRIORITIES),
     optionalNonEmptyString('projectId', 'projectId must be a non-empty string'),
+    optionalDate('dueDate'),
     handleValidationErrors
 ];
 

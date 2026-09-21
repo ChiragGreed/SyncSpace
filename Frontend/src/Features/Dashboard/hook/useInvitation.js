@@ -1,3 +1,4 @@
+import { useCallback } from 'react';
 import { useDispatch } from 'react-redux';
 import {
 	createInvitationApi,
@@ -10,40 +11,36 @@ import { setCreatedInvitations, setProjectId, setReceivedInvitations, setReceive
 const useInvitation = () => {
 	const dispatch = useDispatch();
 
-	const updateInvitationState = (invitation) => {
+	const updateInvitationState = useCallback((invitation) => {
 		if (!invitation) return;
 
 		dispatch(setProjectId(invitation.projectId));
 		dispatch(setSenderId(invitation.senderId));
 		dispatch(setReceiverId(invitation.receiverId));
 		dispatch(setStatus(invitation.status));
-	}
+	}, [dispatch]);
 
-	const createInvitation = async (projectId, receiversId) => {
+	const createInvitation = useCallback(async (projectId, receiversId) => {
 		const response = await createInvitationApi(projectId, receiversId);
 		dispatch(setCreatedInvitations(response.created ?? []));
 		dispatch(setSkippedInvitations(response.skipped ?? []));
 		updateInvitationState(response.created?.[0]);
-		console.log("useInvitation: createInvitation")
-	}
+	}, [dispatch, updateInvitationState]);
 
-	const getReceivedInvitations = async () => {
+	const getReceivedInvitations = useCallback(async () => {
 		const response = await getReceivedInvitationsApi();
 		dispatch(setReceivedInvitations(response.invitations ?? []));
-		console.log("useInvitation: getReceivedInvitations")
-	}
+	}, [dispatch]);
 
-	const getSentInvitations = async () => {
+	const getSentInvitations = useCallback(async () => {
 		const response = await getSentInvitationsApi();
 		dispatch(setSentInvitations(response.invitations ?? []));
-		console.log("useInvitation: getSentInvitations")
-	}
+	}, [dispatch]);
 
-	const respondToInvitation = async (invitationId, status) => {
+	const respondToInvitation = useCallback(async (invitationId, status) => {
 		const response = await respondToInvitationApi(invitationId, status);
 		updateInvitationState(response.invitation);
-		console.log("useInvitation: respondToInvitation")
-	}
+	}, [updateInvitationState])
 
 	return { createInvitation, getReceivedInvitations, getSentInvitations, respondToInvitation }
 }
