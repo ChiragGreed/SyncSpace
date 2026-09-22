@@ -5,7 +5,7 @@ import useAuth from '../Hook/useAuth.js'
 
 export default function Login() {
     const navigate = useNavigate()
-    const { loginHandler } = useAuth()
+    const { login } = useAuth()
     const [form, setForm] = useState({ email: '', password: '' })
     const [showPassword, setShowPassword] = useState(false)
     const [error, setError] = useState('')
@@ -16,7 +16,7 @@ export default function Login() {
         setError('')
         setSubmitting(true)
         try {
-            await loginHandler(form)
+            await login(form)
             navigate('/', { replace: true })
         } catch (requestError) {
             setError(requestError.response?.data?.message || 'We could not sign you in. Check your details and try again.')

@@ -1,16 +1,13 @@
-import axios from "axios";
+import { createHttpClient } from '../../../shared/api/httpClient.js'
 
-const api = axios.create({
-    baseURL: "http://localhost:6500/api/team",
-    withCredentials: true
-})
+const api = createHttpClient('/team')
 
 export const searchUsersApi = async (search = '') => {
-    const response = await api.get('/', { params: { search } });
-    return response.data;
+    const response = await api.get('/', { params: { search } })
+    return response.data
 }
 
 export const getRecentTeammatesApi = async () => {
-    const response = await api.get('/recent');
-    return response.data;
+    const response = await api.get('/recent')
+    return response.data
 }

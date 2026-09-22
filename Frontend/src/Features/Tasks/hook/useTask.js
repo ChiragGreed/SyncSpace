@@ -1,12 +1,12 @@
 import { useCallback } from 'react';
 import { useDispatch } from 'react-redux';
-import {createTaskApi,getTasksApi,getTaskApi,updateTaskApi,updateTaskStatusApi,deleteTaskApi} from '../service/taskApi.js';
-import { removeTask, setAssignee, setDescription, setDueDate, setPriority, setProjectId, setStatus, setTasks, setTitle } from '../State/taskSlice.js';
+import { createTaskApi, getTasksApi, getTaskApi, updateTaskApi, updateTaskStatusApi, deleteTaskApi } from '../service/taskApi.js';
+import { addTask, removeTask, setAssignee, setDescription, setDueDate, setPriority, setProjectId, setStatus, setTasks, setTitle, updateTaskInList } from '../state/taskSlice.js';
 
 const useTask = () => {
 	const dispatch = useDispatch();
 
-	const updateTaskState = (task) => {
+	const updateTaskState = useCallback((task) => {
 		if (!task) return;
 
 		dispatch(setAssignee(task.assignee));
@@ -16,42 +16,43 @@ const useTask = () => {
 		dispatch(setStatus(task.status));
 		dispatch(setPriority(task.priority));
 		dispatch(setDueDate(task.dueDate));
-	}
+	}, [dispatch]);
 
-	const createTask = async (title, description, projectId, status, priority, assignee, dueDate) => {
+	const createTask = useCallback(async (title, description, projectId, status, priority, assignee, dueDate) => {
 		const response = await createTaskApi(title, description, projectId, status, priority, assignee, dueDate);
+		dispatch(addTask(response.task));
 		updateTaskState(response.task);
-		console.log("useTask: createTask")
-	}
+		return response.task;
+	}, [dispatch, updateTaskState]);
 
 	const getTasks = useCallback(async () => {
 		const response = await getTasksApi();
 		dispatch(setTasks(response.tasks ?? []));
-		console.log(response);
 	}, [dispatch]);
 
 	const getTask = useCallback(async (taskId) => {
 		const response = await getTaskApi(taskId);
 		updateTaskState(response.task);
-	}, [dispatch])
+	}, [updateTaskState]);
 
-	const updateTask = async (taskId, data) => {
+	const updateTask = useCallback(async (taskId, data) => {
 		const response = await updateTaskApi(taskId, data);
+		dispatch(updateTaskInList(response.task));
 		updateTaskState(response.task);
-		console.log("useTask: updateTask")
-	}
+		return response.task;
+	}, [dispatch, updateTaskState]);
 
-	const updateTaskStatus = async (taskId, status) => {
+	const updateTaskStatus = useCallback(async (taskId, status) => {
 		const response = await updateTaskStatusApi(taskId, status);
+		dispatch(updateTaskInList(response.task));
 		updateTaskState(response.task);
-		console.log("useTask: updateTaskStatus")
-	}
+		return response.task;
+	}, [dispatch, updateTaskState]);
 
-	const deleteTask = async (taskId) => {
+	const deleteTask = useCallback(async (taskId) => {
 		await deleteTaskApi(taskId);
 		dispatch(removeTask(taskId));
-		console.log("useTask: deleteTask")
-	}
+	}, [dispatch]);
 
 	return { createTask, getTasks, getTask, updateTask, updateTaskStatus, deleteTask }
 }

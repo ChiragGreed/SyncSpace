@@ -1,9 +1,9 @@
 import { configureStore } from '@reduxjs/toolkit';
-import authReducers from '../Features/Dashboard/state/authSlice.js';
-import invitationReducers from '../Features/Dashboard/state/invitationSlice.js';
-import notificationReducers from '../Features/Dashboard/state/notificationSlice.js';
-import projectReducers from '../Features/Projects/State/projectSlice.js';
-import taskReducers from '../Features/Tasks/State/taskSlice.js';
+import authReducers from '../Features/Authentication/state/authSlice.js';
+import invitationReducers from '../Features/Invitations/state/invitationSlice.js';
+import notificationReducers from '../Features/Notifications/state/notificationSlice.js';
+import projectReducers from '../Features/Projects/state/projectSlice.js';
+import taskReducers from '../Features/Tasks/state/taskSlice.js';
 import teamReducers from '../Features/TeamMates/state/teamSlice.js';
 
 const reduxStore = configureStore({

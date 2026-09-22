@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import { ArrowLeft, CalendarDays, Check, Edit3, FolderKanban, Save, Trash2, UserRound, X } from 'lucide-react'
+import { AlertTriangle, ArrowLeft, CalendarDays, Check, Edit3, FolderKanban, Save, Trash2, UserRound, X } from 'lucide-react'
 import { useNavigate, useParams } from 'react-router-dom'
 import { useSelector } from 'react-redux'
 import useTask from '../hook/useTask.js'
@@ -31,6 +31,7 @@ export default function TaskDetail() {
     const { getTask, updateTask, updateTaskStatus, deleteTask } = useTask()
     const { assignee, title, description, projectId, status, priority, dueDate } = useSelector((state) => state.task)
     const [isEditing, setIsEditing] = useState(false)
+    const [showDeleteConfirm, setShowDeleteConfirm] = useState(false)
     const [form, setForm] = useState({ title: '', description: '', dueDate: '' })
     const [notice, setNotice] = useState('')
     const [loading, setLoading] = useState(true)
@@ -62,8 +63,11 @@ export default function TaskDetail() {
         setNotice('Task status updated')
     }
 
-    const removeTask = async () => {
-        if (!window.confirm('Delete this task? This action cannot be undone.')) return
+    const removeTask = () => {
+        setShowDeleteConfirm(true)
+    }
+
+    const confirmDeleteTask = async () => {
         await deleteTask(taskId)
         navigate('/')
     }
@@ -99,6 +103,49 @@ export default function TaskDetail() {
                 <div className="rounded-2xl p-5" style={{ background: 'linear-gradient(145deg, rgba(26,20,16,0.95), rgba(18,14,10,0.9))', border: '1px solid rgba(255,107,61,0.14)' }}><div className="mb-3 flex items-center justify-between"><span className="text-xs text-muted">Assigned to</span><UserRound className="h-4 w-4 text-accentLight" /></div><div className="flex items-center gap-2"><span className="flex h-7 w-7 items-center justify-center rounded-full bg-linear-to-br from-accent to-[#ffb347] font-mono text-[10px] text-white">{initialsFor(assignee)}</span><span className="truncate font-display text-sm font-semibold text-ink">{personName}</span></div></div>
                 <div className="rounded-2xl p-5" style={{ background: 'linear-gradient(145deg, rgba(26,20,16,0.95), rgba(18,14,10,0.9))', border: '1px solid rgba(255,107,61,0.14)' }}><div className="mb-3 flex items-center justify-between"><span className="text-xs text-muted">Project</span><FolderKanban className="h-4 w-4 text-accentLight" /></div><p className="truncate font-display text-sm font-semibold text-ink">{projectName}</p></div>
             </section>
+            {showDeleteConfirm && (
+                <div
+                    className="fixed inset-0 z-50 flex items-center justify-center bg-black/75 px-4 backdrop-blur-sm"
+                    role="dialog"
+                    aria-modal="true"
+                    aria-labelledby="delete-task-title"
+                    onClick={() => setShowDeleteConfirm(false)}
+                >
+                    <div
+                        className="w-full max-w-sm rounded-2xl p-6 border border-accent/18"
+                        style={{
+                            background: 'linear-gradient(145deg, rgba(26,20,16,0.98) 0%, rgba(18,14,10,0.95) 100%)',
+                            boxShadow: '0 8px 32px rgba(255, 107, 61, 0.12)',
+                        }}
+                        onClick={(e) => e.stopPropagation()}
+                    >
+                        <div className="mb-4 flex h-11 w-11 items-center justify-center rounded-xl" style={{ background: 'rgba(255, 107, 61, 0.1)', border: '1px solid rgba(255, 107, 61, 0.2)' }}>
+                            <AlertTriangle className="h-5 w-5" style={{ color: '#ff8c42' }} />
+                        </div>
+                        <h2 id="delete-task-title" className="mb-1.5 font-display text-lg font-semibold" style={{ color: '#fff0e8' }}>Delete task?</h2>
+                        <p className="mb-6 text-sm leading-6" style={{ color: '#a99d98' }}>
+                            This will permanently delete <span className="font-semibold" style={{ color: '#fff0e8' }}>{title || 'this task'}</span>. This action <span className="font-semibold" style={{ color: '#ffb347' }}>cannot be undone</span>.
+                        </p>
+                        <div className="flex gap-3">
+                            <button
+                                type="button"
+                                onClick={() => setShowDeleteConfirm(false)}
+                                className="flex-1 text-sm font-medium rounded-xl py-2.5 transition-all duration-200 text-muted border border-accent/15 hover:border-accent/30 hover:text-ink"
+                            >
+                                Cancel
+                            </button>
+                            <button
+                                type="button"
+                                onClick={confirmDeleteTask}
+                                className="flex-1 text-white text-sm font-semibold rounded-xl py-2.5 transition-all duration-200 hover:brightness-110"
+                                style={{ background: 'linear-gradient(135deg, #ff6b3d 0%, #ffb347 100%)', boxShadow: '0 4px 14px rgba(255, 107, 61, 0.35)' }}
+                            >
+                                Delete task
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            )}
         </main>
     )
 }

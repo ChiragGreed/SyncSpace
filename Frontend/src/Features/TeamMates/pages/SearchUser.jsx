@@ -13,7 +13,7 @@ import {
 } from 'lucide-react'
 import { useSelector } from 'react-redux'
 import SearchUserBackground from '../components/SearchUserBackground.jsx'
-import useInvitation from '../../Dashboard/hook/useInvitation.js'
+import useInvitation from '../../Invitations/hook/useInvitation.js'
 import useProject from '../../Projects/hook/useProject.js'
 import useTeam from '../hook/useTeam.js'
 

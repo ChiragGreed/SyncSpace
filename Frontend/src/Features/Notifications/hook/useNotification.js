@@ -27,21 +27,21 @@ const useNotification = () => {
 		updateNotificationState(response.notifications?.[0]);
 	}, [dispatch, updateNotificationState]);
 
-	const markNotificationRead = async (notificationId) => {
+	const markNotificationRead = useCallback(async (notificationId) => {
 		const response = await markNotificationReadApi(notificationId);
 		dispatch(markRead(notificationId));
 		updateNotificationState(response.notification);
-	}
+	}, [dispatch, updateNotificationState]);
 
-	const markAllNotificationsRead = async () => {
+	const markAllNotificationsRead = useCallback(async () => {
 		await markAllNotificationsReadApi();
 		dispatch(markAllRead());
-	}
+	}, [dispatch]);
 
-	const deleteNotification = async (notificationId) => {
+	const deleteNotification = useCallback(async (notificationId) => {
 		await deleteNotificationApi(notificationId);
 		dispatch(removeNotification(notificationId));
-	}
+	}, [dispatch]);
 
 	return { getNotifications, markNotificationRead, markAllNotificationsRead, deleteNotification }
 }

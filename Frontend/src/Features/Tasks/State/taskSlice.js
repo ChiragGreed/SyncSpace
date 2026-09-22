@@ -37,11 +37,22 @@ const taskSlice = createSlice({
 		setTasks: (state, action) => {
 			state.tasks = action.payload;
 		},
+		// Inserts a freshly created task at the top of the list so the UI
+		// (Dashboard, task lists) updates instantly without a refetch.
+		addTask: (state, action) => {
+			state.tasks = [action.payload, ...state.tasks];
+		},
+		// Keeps the list in sync after an in-place edit/status change,
+		// again avoiding a full getTasks() round trip.
+		updateTaskInList: (state, action) => {
+			const updated = action.payload;
+			state.tasks = state.tasks.map((task) => (task._id === updated._id ? updated : task));
+		},
 		removeTask: (state, action) => {
 			state.tasks = state.tasks.filter((task) => task._id !== action.payload);
 		}
 	}
 })
 
-export const { setAssignee, setTitle, setDescription, setProjectId, setStatus, setPriority, setDueDate, setTasks, removeTask } = taskSlice.actions;
+export const { setAssignee, setTitle, setDescription, setProjectId, setStatus, setPriority, setDueDate, setTasks, addTask, updateTaskInList, removeTask } = taskSlice.actions;
 export default taskSlice.reducer;

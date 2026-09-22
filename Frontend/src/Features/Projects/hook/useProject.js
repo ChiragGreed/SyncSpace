@@ -1,12 +1,12 @@
 import { useCallback } from 'react';
 import { useDispatch } from 'react-redux';
 import { createProjectApi, getProjectsApi, getProjectApi, getProjectTasksApi, updateProjectApi, updateProjectStatusApi, deleteProjectApi } from '../service/projectApi.js';
-import { removeProject, setAdmin, setDescription, setDueDate, setMembers, setProjectTasks, setProjects, setStatus, setTitle } from '../State/projectSlice.js';
+import { addProject, removeProject, setAdmin, setDescription, setDueDate, setMembers, setProjectTasks, setProjects, setStatus, setTitle, updateProjectInList } from '../state/projectSlice.js';
 
 const useProject = () => {
 	const dispatch = useDispatch();
 
-	const updateProjectState = (project) => {
+	const updateProjectState = useCallback((project) => {
 		if (!project) return;
 
 		dispatch(setAdmin(project.admin));
@@ -15,13 +15,14 @@ const useProject = () => {
 		dispatch(setStatus(project.status));
 		dispatch(setMembers(project.members));
 		dispatch(setDueDate(project.dueDate));
-	}
+	}, [dispatch]);
 
-	const createProject = async (title, description, status, dueDate) => {
-		const response = await createProjectApi(title, description, status, dueDate);
+	const createProject = useCallback(async (title, description, status, dueDate, members) => {
+		const response = await createProjectApi(title, description, status, dueDate, members);
+		dispatch(addProject(response.project));
 		updateProjectState(response.project);
-		console.log("useProject: createProject")
-	}
+		return response.project;
+	}, [dispatch, updateProjectState]);
 
 	const getProjects = useCallback(async () => {
 		const response = await getProjectsApi();
@@ -32,27 +33,34 @@ const useProject = () => {
 		const response = await getProjectApi(projectId);
 		updateProjectState(response.project);
 		dispatch(setProjectTasks(response.tasks ?? []));
-	}, [dispatch])
+	}, [dispatch, updateProjectState]);
 
-	const updateProject = async (projectId, data) => {
+	const getProjectTasks = useCallback(async (projectId) => {
+		const response = await getProjectTasksApi(projectId);
+		dispatch(setProjectTasks(response.tasks ?? []));
+		return response.tasks ?? [];
+	}, [dispatch]);
+
+	const updateProject = useCallback(async (projectId, data) => {
 		const response = await updateProjectApi(projectId, data);
+		dispatch(updateProjectInList(response.project));
 		updateProjectState(response.project);
-		console.log("useProject: updateProject")
-	}
+		return response.project;
+	}, [dispatch, updateProjectState]);
 
-	const updateProjectStatus = async (projectId, status) => {
+	const updateProjectStatus = useCallback(async (projectId, status) => {
 		const response = await updateProjectStatusApi(projectId, status);
+		dispatch(updateProjectInList(response.project));
 		updateProjectState(response.project);
-		console.log("useProject: updateProjectStatus")
-	}
+		return response.project;
+	}, [dispatch, updateProjectState]);
 
-	const deleteProject = async (projectId) => {
+	const deleteProject = useCallback(async (projectId) => {
 		await deleteProjectApi(projectId);
 		dispatch(removeProject(projectId));
-		console.log("useProject: deleteProject")
-	}
+	}, [dispatch]);
 
-	return { createProject, getProjects, getProject, updateProject, updateProjectStatus, deleteProject }
+	return { createProject, getProjects, getProject, getProjectTasks, updateProject, updateProjectStatus, deleteProject }
 }
 
 export default useProject

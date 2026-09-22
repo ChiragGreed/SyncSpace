@@ -14,7 +14,9 @@ const useTeam = () => {
 
     const getRecentTeammates = useCallback(async () => {
         const response = await getRecentTeammatesApi();
-        const recentTeammates = response.users.recentTeamMates || [];
+        // The API omits `users` entirely when there are no recent teammates
+        // yet (a common case for new accounts), so this must be optional.
+        const recentTeammates = response.users?.recentTeamMates || [];
 
         dispatch(setRecentTeammates(recentTeammates));
         return recentTeammates;

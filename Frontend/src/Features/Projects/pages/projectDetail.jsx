@@ -1,11 +1,11 @@
 import { useState } from 'react'
-import { ArrowLeft, CalendarDays, Check, ChevronDown, Edit3, MailPlus, MoreHorizontal, Plus, Save, Trash2, Users, X, } from 'lucide-react'
+import { AlertTriangle, ArrowLeft, CalendarDays, Check, ChevronDown, Edit3, MailPlus, MoreHorizontal, Plus, Save, Trash2, Users, X, } from 'lucide-react'
 import ProgressBar from '../../Dashboard/components/ProgressBar.jsx'
 import { useEffect } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
 import useProject from '../hook/useProject.js'
 import useTask from '../../Tasks/hook/useTask.js'
-import useInvitation from '../../Dashboard/hook/useInvitation.js'
+import useInvitation from '../../Invitations/hook/useInvitation.js';
 import useTeam from '../../TeamMates/hook/useTeam.js'
 import { useSelector } from 'react-redux'
 
@@ -87,8 +87,9 @@ export default function ProjectDetail() {
     const [assigneeMenuOpen, setAssigneeMenuOpen] = useState(false)
     const [notice, setNotice] = useState('')
     const [isEditing, setIsEditing] = useState(false)
+    const [showDeleteConfirm, setShowDeleteConfirm] = useState(false)
     const [form, setForm] = useState({ title: '', description: '', dueDate: '' })
-    const { getProject, updateProject } = useProject();
+    const { getProject, updateProject, deleteProject } = useProject();
     const { createTask } = useTask();
     const { createInvitation } = useInvitation();
     const { searchUsers } = useTeam();
@@ -194,6 +195,11 @@ export default function ProjectDetail() {
         setNotice('Project details updated')
     }
 
+    const handleDeleteProject = async () => {
+        await deleteProject(projectId)
+        navigate('/')
+    }
+
     return (
         <main className="relative z-10 mx-auto max-w-6xl px-5 py-6 pb-24 md:px-8 md:py-8">
             <div className="mb-7 flex items-center justify-between gap-4">
@@ -219,7 +225,7 @@ export default function ProjectDetail() {
                             <button type="button" className="flex w-full items-center gap-2 rounded-lg px-3 py-2 text-left text-xs text-muted hover:bg-orange-500/8 hover:text-ink" onClick={() => { setIsEditing(true); setShowMenu(false) }}>
                                 <Edit3 className="h-3.5 w-3.5" /> Edit project
                             </button>
-                            <button type="button" className="flex w-full items-center gap-2 rounded-lg px-3 py-2 text-left text-xs text-[#ff8c78] hover:bg-orange-500/8" onClick={() => setNotice('Delete confirmation will be connected soon.')}>
+                            <button type="button" className="flex w-full items-center gap-2 rounded-lg px-3 py-2 text-left text-xs text-[#ff8c78] hover:bg-orange-500/8" onClick={() => { setShowDeleteConfirm(true); setShowMenu(false) }}>
                                 <Trash2 className="h-3.5 w-3.5" /> Delete project
                             </button>
                         </div>
@@ -603,6 +609,49 @@ export default function ProjectDetail() {
                     <section className="rounded-2xl p-5" style={{ background: 'rgba(255,107,61,0.04)', border: '1px solid rgba(255,107,61,0.1)' }}><p className="text-xs uppercase tracking-widest text-muted">Next milestone</p><p className="mt-2 font-display text-lg font-semibold text-ink">API integration review</p><p className="mt-1 text-xs leading-5 text-muted">Make sure the task assignment endpoint is ready for the team walkthrough.</p></section>
                 </aside>
             </div>
+            {showDeleteConfirm && (
+                <div
+                    className="fixed inset-0 z-50 flex items-center justify-center bg-black/75 px-4 backdrop-blur-sm"
+                    role="dialog"
+                    aria-modal="true"
+                    aria-labelledby="delete-project-title"
+                    onClick={() => setShowDeleteConfirm(false)}
+                >
+                    <div
+                        className="w-full max-w-sm rounded-2xl p-6 border border-accent/18"
+                        style={{
+                            background: 'linear-gradient(145deg, rgba(26,20,16,0.98) 0%, rgba(18,14,10,0.95) 100%)',
+                            boxShadow: '0 8px 32px rgba(255, 107, 61, 0.12)',
+                        }}
+                        onClick={(e) => e.stopPropagation()}
+                    >
+                        <div className="mb-4 flex h-11 w-11 items-center justify-center rounded-xl" style={{ background: 'rgba(255, 107, 61, 0.1)', border: '1px solid rgba(255, 107, 61, 0.2)' }}>
+                            <AlertTriangle className="h-5 w-5" style={{ color: '#ff8c42' }} />
+                        </div>
+                        <h2 id="delete-project-title" className="mb-1.5 font-display text-lg font-semibold" style={{ color: '#fff0e8' }}>Delete project?</h2>
+                        <p className="mb-6 text-sm leading-6" style={{ color: '#a99d98' }}>
+                            This will permanently delete <span className="font-semibold" style={{ color: '#fff0e8' }}>{title || 'this project'}</span> and all of its tasks. This action <span className="font-semibold" style={{ color: '#ffb347' }}>cannot be undone</span>.
+                        </p>
+                        <div className="flex gap-3">
+                            <button
+                                type="button"
+                                onClick={() => setShowDeleteConfirm(false)}
+                                className="flex-1 text-sm font-medium rounded-xl py-2.5 transition-all duration-200 text-muted border border-accent/15 hover:border-accent/30 hover:text-ink"
+                            >
+                                Cancel
+                            </button>
+                            <button
+                                type="button"
+                                onClick={handleDeleteProject}
+                                className="flex-1 text-white text-sm font-semibold rounded-xl py-2.5 transition-all duration-200 hover:brightness-110"
+                                style={{ background: 'linear-gradient(135deg, #ff6b3d 0%, #ffb347 100%)', boxShadow: '0 4px 14px rgba(255, 107, 61, 0.35)' }}
+                            >
+                                Delete project
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            )}
         </main>
     )
 }

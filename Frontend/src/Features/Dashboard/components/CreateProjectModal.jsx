@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from 'react'
 import { X, Check } from 'lucide-react'
-import { members } from '../../../mockData.js'
+import EmptyState from './EmptyState.jsx'
 
 const AVATAR_BG = [
   'linear-gradient(135deg, #ff6b3d 0%, #ff8c42 100%)',
@@ -9,11 +9,15 @@ const AVATAR_BG = [
   'linear-gradient(135deg, #ffb347 0%, #ff8c42 100%)',
 ]
 
-export default function CreateProjectModal({ isOpen, onClose, onCreate }) {
+const initialsFor = (name = '') =>
+  name.split(' ').map((part) => part[0]).join('').slice(0, 2).toUpperCase() || '—'
+
+export default function CreateProjectModal({ isOpen, onClose, onCreate, members = [], membersLoading = false }) {
   const [name, setName] = useState('')
   const [description, setDescription] = useState('')
   const [dueDate, setDueDate] = useState('')
   const [selectedMembers, setSelectedMembers] = useState([])
+  const [submitting, setSubmitting] = useState(false)
   const nameInputRef = useRef(null)
 
   useEffect(() => {
@@ -44,21 +48,21 @@ export default function CreateProjectModal({ isOpen, onClose, onCreate }) {
     )
   }
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault()
-    if (!name.trim()) return
-    onCreate({
-      id: `p${Date.now()}`,
-      name: name.trim(),
-      description: description.trim() || 'No description yet.',
-      progress: 0,
-      status: 'in-progress',
-      dueDate: dueDate || 'No due date',
-      members: selectedMembers,
-      tasksTotal: 0,
-      tasksDone: 0,
-    })
-    onClose()
+    if (!name.trim() || submitting) return
+    setSubmitting(true)
+    try {
+      await onCreate({
+        name: name.trim(),
+        description: description.trim() || 'No description yet.',
+        dueDate: dueDate || undefined,
+        members: selectedMembers,
+      })
+      onClose()
+    } finally {
+      setSubmitting(false)
+    }
   }
 
   const inputStyle = {
@@ -76,26 +80,22 @@ export default function CreateProjectModal({ isOpen, onClose, onCreate }) {
       onClick={onClose}
     >
       <div
-        className="w-full max-w-md p-6 rounded-2xl"
+        className="w-full max-w-md p-6 rounded-2xl border border-accent/18"
         style={{
           background: 'linear-gradient(145deg, rgba(26,20,16,0.98) 0%, rgba(18,14,10,0.95) 100%)',
-          border: '1px solid rgba(255, 107, 61, 0.18)',
           boxShadow: '0 8px 32px rgba(255, 107, 61, 0.12)',
         }}
         onClick={(e) => e.stopPropagation()}
       >
         {/* Header */}
         <div className="flex items-center justify-between mb-5">
-          <h2 id="create-project-title" className="font-display font-semibold text-lg" style={{ color: '#fff0e8' }}>
+          <h2 id="create-project-title" className="font-display font-semibold text-lg text-ink">
             Create project
           </h2>
           <button
             onClick={onClose}
             aria-label="Close"
-            className="p-1.5 rounded-lg text-muted transition-all duration-200"
-            style={{ border: '1px solid rgba(255, 107, 61, 0.1)' }}
-            onMouseEnter={e => { e.currentTarget.style.background = 'rgba(255,107,61,0.08)'; e.currentTarget.style.color = '#fff0e8' }}
-            onMouseLeave={e => { e.currentTarget.style.background = 'transparent'; e.currentTarget.style.color = '#7a7070' }}
+            className="p-1.5 rounded-lg text-muted border border-accent/10 transition-all duration-200 hover:bg-accent/8 hover:text-ink"
           >
             <X className="w-4 h-4" strokeWidth={2} />
           </button>
@@ -115,10 +115,8 @@ export default function CreateProjectModal({ isOpen, onClose, onCreate }) {
               value={name}
               onChange={(e) => setName(e.target.value)}
               placeholder="e.g. Notifications Service"
-              className="w-full rounded-lg px-3 py-2 text-sm placeholder:text-muted outline-none transition-all duration-200"
+              className="w-full rounded-lg px-3 py-2 text-sm placeholder:text-muted outline-none transition-all duration-200 focus:border-accent/55"
               style={inputStyle}
-              onFocus={e => e.target.style.borderColor = 'rgba(255, 107, 61, 0.55)'}
-              onBlur={e => e.target.style.borderColor = 'rgba(255, 107, 61, 0.15)'}
             />
           </div>
 
@@ -133,10 +131,8 @@ export default function CreateProjectModal({ isOpen, onClose, onCreate }) {
               value={description}
               onChange={(e) => setDescription(e.target.value)}
               placeholder="What is this project about?"
-              className="w-full rounded-lg px-3 py-2 text-sm placeholder:text-muted outline-none transition-all duration-200 resize-none"
+              className="w-full rounded-lg px-3 py-2 text-sm placeholder:text-muted outline-none transition-all duration-200 resize-none focus:border-accent/55"
               style={inputStyle}
-              onFocus={e => e.target.style.borderColor = 'rgba(255, 107, 61, 0.55)'}
-              onBlur={e => e.target.style.borderColor = 'rgba(255, 107, 61, 0.15)'}
             />
           </div>
 
@@ -147,14 +143,12 @@ export default function CreateProjectModal({ isOpen, onClose, onCreate }) {
             </label>
             <input
               id="project-due"
-              type="text"
+              type="date"
+              required
               value={dueDate}
               onChange={(e) => setDueDate(e.target.value)}
-              placeholder="e.g. Sep 30"
-              className="w-full rounded-lg px-3 py-2 text-sm placeholder:text-muted outline-none transition-all duration-200"
+              className="w-full rounded-lg px-3 py-2 text-sm placeholder:text-muted outline-none transition-all duration-200 focus:border-accent/55"
               style={inputStyle}
-              onFocus={e => e.target.style.borderColor = 'rgba(255, 107, 61, 0.55)'}
-              onBlur={e => e.target.style.borderColor = 'rgba(255, 107, 61, 0.15)'}
             />
           </div>
 
@@ -165,68 +159,52 @@ export default function CreateProjectModal({ isOpen, onClose, onCreate }) {
                 Invite team members
               </label>
               {selectedMembers.length > 0 && (
-                <span className="text-[10px] font-mono" style={{ color: '#ff8c42' }}>
+                <span className="text-[10px] font-mono text-accentLight">
                   {selectedMembers.length} selected
                 </span>
               )}
             </div>
-            <div
-              className="rounded-xl p-3"
-              style={{
-                background: 'rgba(255, 107, 61, 0.04)',
-                border: '1px solid rgba(255, 107, 61, 0.12)',
-              }}
-            >
-              <div className="flex flex-col gap-2">
-                {members.map((member, i) => {
-                  const isSelected = selectedMembers.includes(member.id)
-                  return (
-                    <button
-                      key={member.id}
-                      type="button"
-                      onClick={() => toggleMember(member.id)}
-                      className="flex items-center gap-3 w-full rounded-lg px-2 py-1.5 text-left transition-all duration-200"
-                      style={{
-                        background: isSelected ? 'rgba(255, 107, 61, 0.1)' : 'transparent',
-                        border: isSelected
-                          ? '1px solid rgba(255, 107, 61, 0.3)'
-                          : '1px solid transparent',
-                      }}
-                    >
-                      {/* Avatar */}
-                      <div
-                        className="w-7 h-7 rounded-full flex items-center justify-center text-[9px] font-mono text-white shrink-0"
-                        style={{ background: AVATAR_BG[i % AVATAR_BG.length] }}
+            <div className="rounded-xl p-3 bg-accent/4 border border-accent/12">
+              {membersLoading ? (
+                <p className="text-xs text-muted py-2 text-center">Loading teammates…</p>
+              ) : members.length === 0 ? (
+                <EmptyState title="No teammates yet" description="Invite people from the Teammates tab first." />
+              ) : (
+                <div className="flex flex-col gap-2">
+                  {members.map((member, i) => {
+                    const isSelected = selectedMembers.includes(member._id)
+                    return (
+                      <button
+                        key={member._id}
+                        type="button"
+                        onClick={() => toggleMember(member._id)}
+                        className={`flex items-center gap-3 w-full rounded-lg px-2 py-1.5 text-left transition-all duration-200 border ${isSelected ? 'bg-accent/10 border-accent/30' : 'bg-transparent border-transparent'}`}
                       >
-                        {member.initials}
-                      </div>
+                        {/* Avatar */}
+                        <div
+                          className="w-7 h-7 rounded-full flex items-center justify-center text-[9px] font-mono text-white shrink-0"
+                          style={{ background: AVATAR_BG[i % AVATAR_BG.length] }}
+                        >
+                          {initialsFor(member.fullName)}
+                        </div>
 
-                      {/* Name */}
-                      <span
-                        className="text-sm flex-1"
-                        style={{ color: isSelected ? '#fff0e8' : '#7a7070' }}
-                      >
-                        {member.name}
-                      </span>
+                        {/* Name */}
+                        <span className={`text-sm flex-1 truncate ${isSelected ? 'text-ink' : 'text-muted'}`}>
+                          {member.fullName}
+                        </span>
 
-                      {/* Check indicator */}
-                      <div
-                        className="w-4 h-4 rounded-full flex items-center justify-center shrink-0 transition-all duration-200"
-                        style={{
-                          background: isSelected
-                            ? 'linear-gradient(135deg, #ff6b3d 0%, #ffb347 100%)'
-                            : 'rgba(255, 107, 61, 0.08)',
-                          border: isSelected
-                            ? 'none'
-                            : '1px solid rgba(255, 107, 61, 0.2)',
-                        }}
-                      >
-                        {isSelected && <Check className="w-2.5 h-2.5 text-white" strokeWidth={3} />}
-                      </div>
-                    </button>
-                  )
-                })}
-              </div>
+                        {/* Check indicator */}
+                        <div
+                          className={`w-4 h-4 rounded-full flex items-center justify-center shrink-0 transition-all duration-200 ${isSelected ? '' : 'bg-accent/8 border border-accent/20'}`}
+                          style={isSelected ? { background: 'linear-gradient(135deg, #ff6b3d 0%, #ffb347 100%)' } : undefined}
+                        >
+                          {isSelected && <Check className="w-2.5 h-2.5 text-white" strokeWidth={3} />}
+                        </div>
+                      </button>
+                    )
+                  })}
+                </div>
+              )}
             </div>
           </div>
 
@@ -235,26 +213,20 @@ export default function CreateProjectModal({ isOpen, onClose, onCreate }) {
             <button
               type="button"
               onClick={onClose}
-              className="flex-1 text-sm font-medium rounded-xl py-2.5 transition-all duration-200"
-              style={{
-                background: 'transparent',
-                border: '1px solid rgba(255, 107, 61, 0.15)',
-                color: '#7a7070',
-              }}
-              onMouseEnter={e => { e.currentTarget.style.borderColor = 'rgba(255,107,61,0.3)'; e.currentTarget.style.color = '#fff0e8' }}
-              onMouseLeave={e => { e.currentTarget.style.borderColor = 'rgba(255,107,61,0.15)'; e.currentTarget.style.color = '#7a7070' }}
+              className="flex-1 text-sm font-medium rounded-xl py-2.5 transition-all duration-200 text-muted border border-accent/15 hover:border-accent/30 hover:text-ink"
             >
               Cancel
             </button>
             <button
               type="submit"
-              className="flex-1 text-white text-sm font-semibold rounded-xl py-2.5 transition-all duration-200 hover:brightness-110"
+              disabled={submitting}
+              className="flex-1 text-white text-sm font-semibold rounded-xl py-2.5 transition-all duration-200 hover:brightness-110 disabled:opacity-60 disabled:cursor-not-allowed"
               style={{
                 background: 'linear-gradient(135deg, #ff6b3d 0%, #ffb347 100%)',
                 boxShadow: '0 4px 14px rgba(255, 107, 61, 0.35)',
               }}
             >
-              Create project
+              {submitting ? 'Creating…' : 'Create project'}
             </button>
           </div>
         </form>

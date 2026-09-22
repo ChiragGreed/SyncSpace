@@ -1,7 +1,7 @@
 import { useState, useRef, useEffect } from 'react'
 import { Bell } from 'lucide-react'
 import { useSelector } from 'react-redux'
-import useNotification from '../../../Features/Dashboard/hook/useNotification.js'
+import useNotification from '../../../Features/Notifications/hook/useNotification.js'
 
 export default function NotificationBell() {
   const [showNotifs, setShowNotifs] = useState(false)

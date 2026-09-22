@@ -37,11 +37,21 @@ const projectSlice = createSlice({
 		setProjectTasks: (state, action) => {
 			state.projectTasks = action.payload;
 		},
+		// Inserts a freshly created project at the top of the list so the
+		// Dashboard updates instantly without a refetch.
+		addProject: (state, action) => {
+			state.projects = [action.payload, ...state.projects];
+		},
+		// Keeps the list in sync after an in-place edit/status change.
+		updateProjectInList: (state, action) => {
+			const updated = action.payload;
+			state.projects = state.projects.map((project) => (project._id === updated._id ? updated : project));
+		},
 		removeProject: (state, action) => {
 			state.projects = state.projects.filter((project) => project._id !== action.payload);
 		}
 	}
 })
 
-export const { setAdmin, setTitle, setDescription, setStatus, setMembers, setDueDate, setProjects, setProjectTasks, removeProject } = projectSlice.actions;
+export const { setAdmin, setTitle, setDescription, setStatus, setMembers, setDueDate, setProjects, setProjectTasks, addProject, updateProjectInList, removeProject } = projectSlice.actions;
 export default projectSlice.reducer;

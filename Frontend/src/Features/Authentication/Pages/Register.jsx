@@ -5,7 +5,7 @@ import useAuth from '../Hook/useAuth.js'
 
 export default function Register() {
     const navigate = useNavigate()
-    const { registerHandler } = useAuth()
+    const { register } = useAuth()
     const [form, setForm] = useState({ fullName: '', email: '', password: '', role: 'member' })
     const [showPassword, setShowPassword] = useState(false)
     const [error, setError] = useState('')
@@ -16,7 +16,7 @@ export default function Register() {
         setError('')
         setSubmitting(true)
         try {
-            await registerHandler(form)
+            await register(form)
             navigate('/', { replace: true })
         } catch (requestError) {
             setError(requestError.response?.data?.message || 'We could not create your workspace account.')

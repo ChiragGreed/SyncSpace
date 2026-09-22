@@ -25,7 +25,6 @@ const useInvitation = () => {
 		dispatch(setCreatedInvitations(response.created ?? []));
 		dispatch(setSkippedInvitations(response.skipped ?? []));
 		updateInvitationState(response.created?.[0]);
-		return response;
 	}, [dispatch, updateInvitationState]);
 
 	const getReceivedInvitations = useCallback(async () => {
