@@ -103,3 +103,15 @@ export const getMe = async (req, res, next) => {
         next(err);
     }
 }
+
+/**
+ * @route POST /api/auth/logout
+ * Clear the access token cookie to log the user out.
+ */
+export const logout = (req, res) => {
+    res.clearCookie('Access_Token');
+    res.status(200).json({
+        message: "User logged out successfully",
+        success: true
+    });
+}

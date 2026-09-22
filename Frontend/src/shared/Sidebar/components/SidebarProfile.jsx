@@ -1,12 +1,27 @@
 import { useRef, useEffect, useState } from 'react'
 import { LogOut } from 'lucide-react'
-import { useSelector } from 'react-redux'
+import { useSelector, useDispatch } from 'react-redux'
+import { useNavigate } from 'react-router-dom'
+import { logout } from '../../../Features/Authentication/State/authSlice'
+import { logoutApi } from '../../../Features/Authentication/Service/authApi'
 
 export default function SidebarProfile() {
   const [showProfile, setShowProfile] = useState(false)
   const profileDropdownRef = useRef(null)
   const { fullName, email, role } = useSelector((state) => state.user)
   const avatarInitials = fullName?.split(' ').map((name) => name[0]).join('').slice(0, 2) || 'U'
+  const dispatch = useDispatch()
+  const navigate = useNavigate()
+
+  const handleLogout = async () => {
+    try {
+      await logoutApi()
+    } catch (_) {
+      // ignore server errors, still log out locally
+    }
+    dispatch(logout())
+    navigate('/login')
+  }
 
   useEffect(() => {
     function handleClickOutside(event) {
@@ -70,6 +85,7 @@ export default function SidebarProfile() {
               style={{ color: '#ff6b3d', background: 'rgba(255,107,61,0.05)' }}
               onMouseEnter={e => { e.currentTarget.style.background = 'rgba(255,107,61,0.15)'; e.currentTarget.style.color = '#ff6b3d' }}
               onMouseLeave={e => { e.currentTarget.style.background = 'rgba(255,107,61,0.05)'; e.currentTarget.style.color = '#ff6b3d' }}
+              onClick={handleLogout}
             >
               <LogOut className="w-4 h-4" strokeWidth={2} />
               Log out

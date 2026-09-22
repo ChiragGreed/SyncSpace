@@ -16,3 +16,8 @@ export const getMeApi = async () => {
     const response = await api.get('/')
     return response.data
 }
+
+export const logoutApi = async () => {
+    const response = await api.post('/logout')
+    return response.data
+}

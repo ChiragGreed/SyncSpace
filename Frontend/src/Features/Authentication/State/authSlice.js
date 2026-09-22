@@ -16,9 +16,14 @@ const authSlice = createSlice({
         },
         setRole: (state, action) => {
             state.role = action.payload;
+        },
+        logout: (state) => {
+            state.fullName = null;
+            state.email = null;
+            state.role = null;
         }
     }
 })
 
-export const { setFullName, setEmail, setRole } = authSlice.actions;
+export const { setFullName, setEmail, setRole, logout } = authSlice.actions;
 export default authSlice.reducer; 
