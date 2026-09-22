@@ -1,33 +1,96 @@
 # SyncSpace
 
-SyncSpace is a full-stack project and task management workspace for organizing projects, assigning work, collaborating with teammates, and generating task suggestions with AI.
+A full-stack project and task management platform built to help teams organize projects, manage tasks, collaborate with teammates, and track project activity from one place.
 
-The repository contains a React frontend and an Express backend connected to MongoDB. Authenticated users can create projects, manage project tasks, invite teammates, search for users, receive notifications, and generate project-specific task suggestions with Google Generative AI.
+**Live Demo:** https://syncspace-bz0v.onrender.com
 
-## Features
+**GitHub:** https://github.com/ChiragGreed/SyncSpace
 
-- User registration, login, JWT-based authentication, and protected routes
-- Dashboard with project, task, progress, deadline, assignment, and notification views
-- Project creation, editing, status updates, member display, and deletion flow
-- Project detail pages with progress tracking and project-specific tasks
-- Task creation with title, description, priority, due date, and assignee
-- Task detail pages with task information and status management
-- AI-assisted task generation from a project's title and description
-- Selective import of AI-generated task suggestions into a project
-- Teammate search and recent teammate views
-- Invitation sending, received/sent invitation lists, and invitation responses
-- Notification list, read-state updates, mark-all-as-read, and deletion
-- Responsive interface with desktop sidebar and mobile navigation
-- Redux Toolkit state management organized by feature
+---
 
-## Tech Stack
+## 🚀 Features
+
+### 🔐 Authentication
+
+- User registration and login
+- JWT-based authentication
+- HTTP-only cookie-based authentication
+- Protected routes
+- Password hashing with bcryptjs
+
+### 📊 Dashboard
+
+- Overview of projects and tasks
+- Project progress tracking
+- Task status overview
+- Upcoming deadlines
+- Assigned tasks
+- Notifications
+- Recent activity
+
+### 📁 Project Management
+
+- Create projects
+- Edit project details
+- Update project status
+- Add and manage project members
+- View project progress
+- Delete projects
+- View project-specific activity
+
+### ✅ Task Management
+
+- Create and manage tasks
+- Assign tasks to team members
+- Set task priority
+- Add task descriptions
+- Set due dates
+- Update task status
+- View task details
+- Track assigned tasks
+
+### 🤝 Team Collaboration
+
+- Search for teammates
+- View recent teammates
+- Send project invitations
+- Accept or reject invitations
+- Manage project members
+
+### 🔔 Notifications
+
+- View notifications
+- Mark individual notifications as read
+- Mark all notifications as read
+- Delete notifications
+- Receive updates related to project activity and invitations
+
+### 🤖 AI Task Generator
+
+SyncSpace includes an AI-powered task generation feature using **LangChain and Google Gemini**.
+
+Users can provide a project's title and description, and the AI generates task suggestions that can be reviewed before being added to the project.
+
+Users can selectively choose which generated tasks they want to add.
+
+### 🎨 Responsive UI
+
+- Responsive dashboard
+- Sidebar navigation
+- Interactive project and task views
+- Modern interface
+- Tailwind CSS based styling
+
+---
+
+## 🛠️ Tech Stack
 
 ### Frontend
 
 - React 19
-- Vite 7
+- Vite
 - React Router
-- Redux Toolkit and React Redux
+- Redux Toolkit
 - Axios
 - Tailwind CSS 4
 - Lucide React
@@ -37,211 +100,327 @@ The repository contains a React frontend and an Express backend connected to Mon
 
 - Node.js
 - Express 5
-- MongoDB with Mongoose
-- JWT authentication stored through HTTP cookies
-- bcryptjs for password hashing
-- Express Validator and Zod for validation
-- CORS and cookie-parser
-- LangChain with Google Generative AI (Gemini) for AI-assisted task generation
+- MongoDB
+- Mongoose
+- JWT
+- bcryptjs
+- Cookie Parser
+- Express Validator
+- Zod
+- CORS
 
-## Repository Structure
+### AI
+
+- LangChain
+- Google Generative AI
+- Gemini
+
+---
+
+## 🏗️ Architecture
+
+SyncSpace follows a layered frontend architecture where UI components do not directly communicate with the backend.
 
 ```text
-.
+Page / UI
+    ↓
+Hooks
+    ↓
+Redux State
+    ↓
+API Services
+    ↓
+Axios
+    ↓
+Express REST API
+    ↓
+MongoDB / Mongoose
+```
+
+The backend follows a structured route, controller, service, and model architecture.
+
+```text
+Request
+   ↓
+Express Route
+   ↓
+Middleware
+   ↓
+Controller
+   ↓
+Service
+   ↓
+Mongoose Model
+   ↓
+MongoDB
+```
+
+---
+
+## 📂 Project Structure
+
+```text
+SyncSpace/
+│
 ├── Backend/
-│   ├── server.js                  # API entry point
+│   ├── server.js
 │   ├── package.json
+│   │
 │   └── src/
-│       ├── app.js                 # Express app and route registration
-│       ├── config/                # Environment and database configuration
-│       ├── controllers/           # Request handlers
-│       ├── middlewares/           # Auth, validation, and error handling
-│       ├── models/                # Mongoose models
-│       ├── routes/                # API route definitions
-│       └── services/              # AI and external service logic
+│       ├── app.js
+│       ├── config/
+│       ├── controllers/
+│       ├── middlewares/
+│       ├── models/
+│       ├── routes/
+│       └── services/
 │
 ├── Frontend/
 │   ├── package.json
+│   │
 │   └── src/
-│       ├── AppRoutes.jsx          # Public and protected routes
 │       ├── Features/
-│       │   ├── Ai/
-│       │   ├── Authentication/
-│       │   ├── Dashboard/
-│       │   ├── Invitations/
-│       │   ├── Notifications/
-│       │   ├── Projects/
-│       │   ├── Tasks/
-│       │   └── TeamMates/
-│       └── shared/                # Redux store, API client, layout, and styles
+│       └── shared/
 │
 └── README.md
 ```
 
-## Prerequisites
+---
 
-- Node.js LTS
-- npm
-- MongoDB, either locally or through MongoDB Atlas
-- Google Generative AI API key for AI task generation
+## 🔌 API Structure
 
-## Environment Variables
+The backend exposes REST APIs organized by resource.
 
-Create `Backend/.env` with the following values:
+```text
+/api/auth
+/api/projects
+/api/tasks
+/api/team
+/api/invitations
+/api/notifications
+/api/ai
+```
+
+### Authentication
+
+```text
+POST /api/auth/register
+POST /api/auth/login
+GET  /api/auth/
+```
+
+### Projects
+
+Project APIs handle:
+
+- Creating projects
+- Fetching projects
+- Updating projects
+- Updating project status
+- Managing project members
+- Deleting projects
+
+### Tasks
+
+Task APIs handle:
+
+- Creating tasks
+- Fetching tasks
+- Updating tasks
+- Updating task status
+- Assigning tasks
+- Deleting tasks
+
+### Team
+
+Team APIs handle:
+
+- Searching users
+- Finding recent teammates
+
+### Invitations
+
+Invitation APIs handle:
+
+- Sending invitations
+- Fetching invitations
+- Accepting invitations
+- Rejecting invitations
+
+### Notifications
+
+Notification APIs handle:
+
+- Fetching notifications
+- Marking notifications as read
+- Marking all notifications as read
+- Deleting notifications
+
+### AI
+
+AI APIs handle:
+
+- Generating task suggestions from project information
+
+---
+
+## 🤖 AI Task Generation Workflow
+
+```text
+Project Title + Description
+            ↓
+         Frontend
+            ↓
+          AI API
+            ↓
+     LangChain + Gemini
+            ↓
+   Generated Suggestions
+            ↓
+       User Reviews
+            ↓
+   Selected Tasks Added
+            ↓
+         MongoDB
+```
+
+The AI suggestions are not automatically added to the project.
+
+Users can review the generated tasks and selectively add the tasks they want.
+
+---
+
+## 🔑 Environment Variables
+
+### Backend
+
+Create a `.env` file inside the `Backend` directory:
 
 ```env
-JWT_SECRET=replace_with_a_long_random_secret
-MONGO_URI=mongodb://127.0.0.1:27017/syncspace
+JWT_SECRET=your_jwt_secret
+MONGO_URI=your_mongodb_connection_string
 GOOGLE_API_KEY=your_google_generative_ai_key
 ```
 
-The backend validates all three variables at startup.
+## ⚙️ Installation
 
-**Do not commit `.env` files or API keys to the repository.**
+### 1. Clone the repository
 
-The frontend uses the following API base URL by default:
-
-```text
-http://localhost:6500/api
+```bash
+git clone https://github.com/ChiragGreed/SyncSpace.git
+cd SyncSpace
 ```
 
-To point the frontend at another backend, create `Frontend/.env`:
+### 2. Install backend dependencies
+
+```bash
+cd Backend
+npm install
+```
+
+### 3. Configure backend environment variables
+
+Create a `.env` file inside the `Backend` directory:
 
 ```env
-VITE_API_BASE_URL=http://localhost:6500/api
+JWT_SECRET=your_jwt_secret
+MONGO_URI=your_mongodb_connection_string
+GOOGLE_API_KEY=your_google_generative_ai_key
 ```
 
-## Installation
+### 4. Install frontend dependencies
 
-Install dependencies for both applications:
+Open another terminal:
 
 ```bash
-cd Backend
-npm install
-
-cd ../Frontend
+cd Frontend
 npm install
 ```
 
-## Running Locally
+### 5. Start the backend
 
-### Start the Backend
-
-Open a terminal and run:
+From the `Backend` directory:
 
 ```bash
-cd Backend
 npm run dev
 ```
 
-The API listens on:
+The backend runs on:
 
 ```text
 http://localhost:6500
 ```
 
-### Start the Frontend
+### 6. Start the frontend
 
-Open a second terminal and run:
+From the `Frontend` directory:
 
 ```bash
-cd Frontend
 npm run dev
 ```
 
-Vite normally serves the application at:
+The frontend will be available through the Vite development server.
 
-```text
-http://localhost:5173
-```
+---
 
-The backend allows credentialed requests from the local Vite origin.
-
-If the frontend or backend ports change, update the CORS configuration and `VITE_API_BASE_URL` accordingly.
-
-## Frontend Routes
-
-| Route | Access | Purpose |
-| --- | --- | --- |
-| `/login` | Public | Sign in |
-| `/register` | Public | Create an account |
-| `/` | Protected | Dashboard |
-| `/team/search` | Protected | Search for teammates |
-| `/project/:projectId` | Protected | View and manage a project |
-| `/task/:taskId` | Protected | View and manage a task |
-
-## API Overview
-
-All application resources are served under `/api`. Protected endpoints require the authenticated `Access_Token` cookie.
-
-| Resource | Base Path | Main Operations |
-| --- | --- | --- |
-| Authentication | `/api/auth` | Register, login, current user |
-| Projects | `/api/projects` | List, create, view, update, status update, delete |
-| Tasks | `/api/tasks` | List, create, view, update, status update, delete |
-| Team | `/api/team` | Search users, recent teammates |
-| Invitations | `/api/invitations` | Sent, received, create, respond |
-| Notifications | `/api/notifications` | List, mark read, mark all read, delete |
-| AI | `/api/ai` | Generate project task suggestions |
-
-## AI Task Generation
-
-SyncSpace includes an AI-assisted task generation feature powered by LangChain and Google Generative AI (Gemini).
-
-The protected `POST /api/ai/generate-tasks` endpoint accepts a project's title and description and returns four structured task suggestions.
-
-Users can review and select individual suggestions before adding them to the project. Selected tasks are created through the existing task API and stored in MongoDB.
-
-### AI Workflow
-
-```text
-Project title + description
-          ↓
-    LangChain + Gemini
-          ↓
- Structured task suggestions
-          ↓
-     User selection
-          ↓
-   Existing Task API
-          ↓
-       MongoDB
-```
-
-## Available Scripts
+## 📜 Available Scripts
 
 ### Frontend
 
 ```bash
-npm run dev       # Start the Vite development server
-npm run build     # Create a production build
-npm run preview   # Preview the production build
-npm run lint      # Run ESLint
+npm run dev
+npm run build
+npm run preview
+npm run lint
 ```
 
 ### Backend
 
 ```bash
-npm run dev       # Start the API with nodemon
+npm run dev
+npm start
 ```
 
-## Development Notes
+---
 
-- API calls are centralized through the shared frontend HTTP client and include credentials for cookie-based authentication.
-- Frontend state is split into feature-specific Redux slices for authentication, projects, tasks, teams, invitations, and notifications.
-- Backend errors are handled by the shared not-found and error middleware registered after all routes.
-- Project and task detail screens refresh their data after mutations so the UI reflects the backend state.
-- AI-generated tasks are not automatically created. Users select which suggestions they want to add.
-- Keep secrets in environment variables and use separate credentials for development and production.
+## 🌐 Deployment
 
-## Production Considerations
+SyncSpace is deployed as a full-stack application on Render.
 
-Before deploying:
+The production deployment serves both the React frontend and Express backend from the same application.
 
-- Configure a production MongoDB connection.
-- Use a strong production JWT secret.
-- Configure a production Google Generative AI API key.
-- Set the production frontend origin in the backend CORS configuration.
-- Set `VITE_API_BASE_URL` to the deployed API URL.
-- Ensure the frontend host is configured to fall back to `index.html` for client-side routes.
-- Never expose or commit API keys and other secrets.
+### Production Architecture
+
+```text
+User
+  ↓
+Render
+  ├── React Frontend
+  │
+  └── Express Backend
+        ↓
+     MongoDB
+        ↓
+   Gemini API
+
+```
+
+
+## 🔮 Future Improvements
+
+Some features I would like to explore further:
+
+- Real-time collaboration with live task updates
+- File sharing within projects and tasks
+- More detailed project analytics
+- Automated reminders and scheduled notifications
+- More AI features for project planning and task management
+
+---
+
+## 📌 Project Status
+
+SyncSpace was built as the final capstone project for the Innovation Hacks Full Stack Development Internship.
+
+The project is deployed and available for testing.
+
