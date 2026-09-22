@@ -20,7 +20,7 @@ app.use(express.json());
 app.use(cookieParser());
 
 app.use(cors({
-    origin: "http://localhost:5173" || "https://syncspace-bz0v.onrender.com",
+    origin: 'https://syncspace-bz0v.onrender.com',
     credentials: true
 }));
 
