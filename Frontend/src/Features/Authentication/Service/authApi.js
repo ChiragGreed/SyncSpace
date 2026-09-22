@@ -1,21 +1,18 @@
-import axios from 'axios';
+import { createHttpClient } from '../../../shared/api/httpClient.js'
 
-const api = axios.create({
-    baseURL: 'http://localhost:6500/api/auth',
-    withCredentials: true
-})
+const api = createHttpClient('/auth')
 
 export const registerApi = async (fullName, email, password, role) => {
-    const response = await api.post('/register', { fullName, email, password, role });
-    return response.data;
+    const response = await api.post('/register', {fullName,email,password,role,})
+    return response.data
 }
 
 export const loginApi = async (email, password) => {
-    const response = await api.post('/login', { email, password });
-    return response.data;
+    const response = await api.post('/login', {email,password,})
+    return response.data
 }
 
 export const getMeApi = async () => {
-    const response = await api.get('/');
-    return response.data;
+    const response = await api.get('/')
+    return response.data
 }
