@@ -38,6 +38,16 @@ Rules:
 - Keep task titles concise.
 - Keep task descriptions under 20 words.
 - Do not include explanations outside the requested structure.`
+    ],
+    [
+        "human",
+        `Project Title:
+{title}
+
+Project Description:
+{description}
+
+Generate development tasks for this project.`
     ]
 ]);
 

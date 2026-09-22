@@ -1,5 +1,6 @@
 import { useState } from 'react'
-import { AlertTriangle, ArrowLeft, CalendarDays, Check, ChevronDown, Edit3, MailPlus, MoreHorizontal, Plus, Save, Trash2, Users, X, } from 'lucide-react'
+import { AlertTriangle, ArrowLeft, CalendarDays, Check, ChevronDown, Edit3, MailPlus, MoreHorizontal, Plus, Save, Sparkles, Trash2, Users, X, } from 'lucide-react'
+
 import ProgressBar from '../../Dashboard/components/ProgressBar.jsx'
 import { useEffect } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
@@ -8,6 +9,7 @@ import useTask from '../../Tasks/hook/useTask.js'
 import useInvitation from '../../Invitations/hook/useInvitation.js';
 import useTeam from '../../TeamMates/hook/useTeam.js'
 import { useSelector } from 'react-redux'
+import useAI from '../../Ai/hook/useAi.js'
 
 const AVATAR_BACKGROUNDS = [
     'linear-gradient(135deg, #ff6b3d 0%, #ff8c42 100%)',
@@ -86,11 +88,16 @@ export default function ProjectDetail() {
     const [priorityMenuOpen, setPriorityMenuOpen] = useState(false)
     const [assigneeMenuOpen, setAssigneeMenuOpen] = useState(false)
     const [notice, setNotice] = useState('')
+    const [aiTasks, setAiTasks] = useState([])
+    const [selectedAiTasks, setSelectedAiTasks] = useState([])
+    const [showAiTasks, setShowAiTasks] = useState(false)
+    const [isGeneratingTasks, setIsGeneratingTasks] = useState(false)
     const [isEditing, setIsEditing] = useState(false)
     const [showDeleteConfirm, setShowDeleteConfirm] = useState(false)
     const [form, setForm] = useState({ title: '', description: '', dueDate: '' })
     const { getProject, updateProject, deleteProject } = useProject();
     const { createTask } = useTask();
+    const { generateTasks } = useAI();
     const { createInvitation } = useInvitation();
     const { searchUsers } = useTeam();
     const { projectId } = useParams();
@@ -148,6 +155,69 @@ export default function ProjectDetail() {
         await getProject(projectId)
         setShowTaskForm(false)
         setNotice('Task created successfully')
+    }
+    const handleGenerateTasks = async () => {
+        if (!title?.trim() || !description?.trim()) {
+            setNotice('Project title and description are required to generate tasks')
+            return
+        }
+
+        try {
+            setIsGeneratingTasks(true)
+
+            const tasks = await generateTasks(title, description)
+
+            setAiTasks(tasks)
+            setSelectedAiTasks([])
+            setShowAiTasks(true)
+        } catch (error) {
+            setNotice(
+                error.response?.data?.message ||
+                'Failed to generate tasks. Please try again.'
+            )
+        } finally {
+            setIsGeneratingTasks(false)
+        }
+    }
+
+    const toggleAiTask = (index) => {
+        setSelectedAiTasks((current) =>
+            current.includes(index)
+                ? current.filter((item) => item !== index)
+                : [...current, index]
+        )
+    }
+
+    const addSelectedAiTasks = async () => {
+        if (!selectedAiTasks.length || !projectId) return
+
+        try {
+            for (const index of selectedAiTasks) {
+                const task = aiTasks[index]
+
+                await createTask(
+                    task.title,
+                    task.description,
+                    projectId,
+                    'toDo',
+                    'medium',
+                    members?.[0]?._id || members?.[0]?.id,
+                    undefined
+                )
+            }
+
+            await getProject(projectId)
+
+            setAiTasks([])
+            setSelectedAiTasks([])
+            setShowAiTasks(false)
+            setNotice(`${selectedAiTasks.length} AI task${selectedAiTasks.length > 1 ? 's' : ''} added successfully`)
+        } catch (error) {
+            setNotice(
+                error.response?.data?.message ||
+                'Failed to add AI tasks'
+            )
+        }
     }
 
     const inviteTeammate = async (event) => {
@@ -263,7 +333,150 @@ export default function ProjectDetail() {
 
             <div className="grid gap-5 lg:grid-cols-[1.35fr_0.65fr]">
                 <section className="rounded-2xl p-5 md:p-6" style={{ background: 'linear-gradient(145deg, rgba(26,20,16,0.95) 0%, rgba(18,14,10,0.9) 100%)', border: '1px solid rgba(255,107,61,0.14)' }}>
-                    <div className="mb-4 flex items-center justify-between"><div><h2 className="font-display font-semibold text-ink">Project tasks</h2><p className="mt-1 text-xs text-muted">Keep the team moving one task at a time.</p></div><button type="button" onClick={() => setShowTaskForm((current) => !current)} className="flex items-center gap-1.5 rounded-lg px-3 py-2 text-xs font-semibold text-white transition-all hover:brightness-110" style={{ background: 'linear-gradient(135deg, #ff6b3d 0%, #ffb347 100%)', boxShadow: '0 3px 12px rgba(255,107,61,0.25)' }}><Plus className="h-3.5 w-3.5" /> Add task</button></div>
+                    <div className="mb-4 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+                        <div>
+                            <h2 className="font-display font-semibold text-ink">Project tasks</h2>
+                            <p className="mt-1 text-xs text-muted">
+                                Keep the team moving one task at a time.
+                            </p>
+                        </div>
+
+                        <div className="flex items-center gap-2">
+                            <button
+                                type="button"
+                                onClick={handleGenerateTasks}
+                                disabled={isGeneratingTasks}
+                                className="flex items-center gap-1.5 rounded-lg px-3 py-2 text-xs font-semibold transition-all hover:brightness-110 disabled:cursor-not-allowed disabled:opacity-60"
+                                style={{
+                                    background: 'rgba(255,179,71,0.1)',
+                                    border: '1px solid rgba(255,179,71,0.25)',
+                                    color: '#ffb347',
+                                }}
+                            >
+                                <Sparkles className="h-3.5 w-3.5" />
+                                {isGeneratingTasks ? 'Generating...' : 'Generate with AI'}
+                            </button>
+
+                            <button
+                                type="button"
+                                onClick={() => setShowTaskForm((current) => !current)}
+                                className="flex items-center gap-1.5 rounded-lg px-3 py-2 text-xs font-semibold text-white transition-all hover:brightness-110"
+                                style={{
+                                    background: 'linear-gradient(135deg, #ff6b3d 0%, #ffb347 100%)',
+                                    boxShadow: '0 3px 12px rgba(255,107,61,0.25)',
+                                }}
+                            >
+                                <Plus className="h-3.5 w-3.5" />
+                                Add task
+                            </button>
+                        </div>
+                    </div>
+                    {showAiTasks && aiTasks.length > 0 && (
+                        <div
+                            className="mb-5 rounded-xl p-4"
+                            style={{
+                                background: 'rgba(255,179,71,0.05)',
+                                border: '1px solid rgba(255,179,71,0.18)',
+                            }}
+                        >
+                            <div className="mb-4 flex items-center justify-between gap-3">
+                                <div>
+                                    <div className="flex items-center gap-2">
+                                        <Sparkles className="h-4 w-4" style={{ color: '#ffb347' }} />
+                                        <h3 className="text-sm font-semibold text-ink">
+                                            AI suggested tasks
+                                        </h3>
+                                    </div>
+
+                                    <p className="mt-1 text-[11px] text-muted">
+                                        Select the tasks you want to add to this project.
+                                    </p>
+                                </div>
+
+                                <button
+                                    type="button"
+                                    onClick={() => {
+                                        setShowAiTasks(false)
+                                        setAiTasks([])
+                                        setSelectedAiTasks([])
+                                    }}
+                                    className="rounded-lg p-1.5 text-muted hover:text-ink"
+                                >
+                                    <X className="h-4 w-4" />
+                                </button>
+                            </div>
+
+                            <div className="space-y-2">
+                                {aiTasks.map((task, index) => {
+                                    const selected = selectedAiTasks.includes(index)
+
+                                    return (
+                                        <button
+                                            key={`${task.title}-${index}`}
+                                            type="button"
+                                            onClick={() => toggleAiTask(index)}
+                                            className="flex w-full items-start gap-3 rounded-lg p-3 text-left transition-all"
+                                            style={{
+                                                background: selected
+                                                    ? 'rgba(255,179,71,0.1)'
+                                                    : 'rgba(255,107,61,0.03)',
+                                                border: selected
+                                                    ? '1px solid rgba(255,179,71,0.3)'
+                                                    : '1px solid rgba(255,107,61,0.1)',
+                                            }}
+                                        >
+                                            <span
+                                                className="mt-0.5 flex h-4 w-4 shrink-0 items-center justify-center rounded border"
+                                                style={{
+                                                    borderColor: selected
+                                                        ? '#ffb347'
+                                                        : 'rgba(255,107,61,0.25)',
+                                                    background: selected
+                                                        ? '#ffb347'
+                                                        : 'transparent',
+                                                }}
+                                            >
+                                                {selected && (
+                                                    <Check
+                                                        className="h-3 w-3"
+                                                        style={{ color: '#1a1410' }}
+                                                    />
+                                                )}
+                                            </span>
+
+                                            <span className="min-w-0">
+                                                <span className="block text-xs font-semibold text-ink">
+                                                    {task.title}
+                                                </span>
+
+                                                <span className="mt-1 block text-[11px] leading-5 text-muted">
+                                                    {task.description}
+                                                </span>
+                                            </span>
+                                        </button>
+                                    )
+                                })}
+                            </div>
+
+                            <div className="mt-4 flex items-center justify-between gap-3">
+                                <span className="text-[11px] text-muted">
+                                    {selectedAiTasks.length} selected
+                                </span>
+
+                                <button
+                                    type="button"
+                                    onClick={addSelectedAiTasks}
+                                    disabled={!selectedAiTasks.length}
+                                    className="rounded-lg px-3 py-2 text-xs font-semibold text-white transition-all hover:brightness-110 disabled:cursor-not-allowed disabled:opacity-40"
+                                    style={{
+                                        background: 'linear-gradient(135deg, #ff6b3d 0%, #ffb347 100%)',
+                                    }}
+                                >
+                                    Add selected tasks
+                                </button>
+                            </div>
+                        </div>
+                    )}
                     {showTaskForm && (
                         <div
                             className="fixed inset-0 z-50 flex items-center justify-center bg-black/75 px-4 backdrop-blur-sm"
