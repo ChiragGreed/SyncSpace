@@ -3,7 +3,7 @@ import axios from 'axios'
 // Single source of truth for the API origin. Falls back to the local dev
 // server so nothing breaks if VITE_API_BASE_URL isn't set, but any
 // deployment just needs to set the env var instead of editing source.
-const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:6500/api'
+const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || '/api'
 
 /**
  * Creates a preconfigured axios instance scoped to one API resource

@@ -9,14 +9,18 @@ import aiRouter from "./routes/aiRoutes.js";
 import cookieParser from "cookie-parser";
 import { notFoundHandler, errorHandler } from "./middlewares/errorMiddleware.js";
 import cors from "cors";
+import path from "path";
+import { fileURLToPath } from "url";
 
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 const app = express();
 
 app.use(express.json());
 app.use(cookieParser());
 
 app.use(cors({
-    origin: "http://localhost:5173",
+    origin: "http://localhost:5173" || "https://syncspace-bz0v.onrender.com",
     credentials: true
 }));
 
@@ -27,6 +31,18 @@ app.use('/api/team', teamRouter);
 app.use('/api/invitations', invitationRouter);
 app.use('/api/notifications', notificationRouter);
 app.use('/api/ai', aiRouter);
+
+const frontendPath = path.join(__dirname, "../public/dist");
+
+app.use(express.static(frontendPath));
+
+app.get("/{*splat}", (req, res, next) => {
+    if (req.path.startsWith("/api")) {
+        return next();
+    }
+
+    res.sendFile(path.join(frontendPath, "index.html"));
+});
 
 // Must come after all routes.
 app.use(notFoundHandler);
