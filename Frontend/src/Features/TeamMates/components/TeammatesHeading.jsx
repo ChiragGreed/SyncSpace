@@ -15,7 +15,7 @@ export default function TeammatesHeading() {
         </span>
       </h1>
       <p className="text-sm text-muted max-w-sm leading-relaxed mb-10">
-        Invite, manage and assign roles to your team members. Full teammate management is coming in the next update.
+        Invite, manage and assign roles to your team members.
       </p>
     </>
   )

@@ -1,4 +1,4 @@
-import { LayoutGrid, FolderKanban, CheckSquare, Users } from 'lucide-react'
+import { LayoutGrid, FolderKanban, CheckSquare, Users, ClipboardList } from 'lucide-react'
 import SidebarLogo from './components/SidebarLogo.jsx'
 import SidebarNav from './components/SidebarNav.jsx'
 import SidebarUtilLinks from './components/SidebarUtilLinks.jsx'
@@ -10,6 +10,7 @@ const NAV = [
   { id: 'projects', label: 'Projects', icon: FolderKanban },
   { id: 'tasks', label: 'Tasks', icon: CheckSquare },
   { id: 'teammates', label: 'Teammates', icon: Users },
+  { id: 'activity-log', label: 'Activity Log', icon: ClipboardList, route: '/team/search' },
 ]
 
 export default function Sidebar({ active, onNavigate }) {

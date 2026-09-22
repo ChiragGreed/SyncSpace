@@ -24,7 +24,10 @@ export default function StatCard({ label, value, delta, index = 0 }) {
       <p className="font-display text-3xl font-bold" style={{ color: '#fff8f0' }}>
         {value}
       </p>
-      <p className={`text-[11px] font-mono mt-0.5 ${isPositive ? 'text-accent' : isNegative ? 'text-rose' : 'text-muted'}`}>
+      <p
+        className={`text-[11px] font-mono mt-0.5 ${isPositive ? 'text-accent' : isNegative ? 'text-rose' : ''}`}
+        style={(!isPositive && !isNegative) ? { color: '#ff8c42' } : undefined}
+      >
         {delta}
       </p>
     </div>

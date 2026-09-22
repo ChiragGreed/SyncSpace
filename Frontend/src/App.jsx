@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import { useNavigate } from 'react-router-dom'
 import Sidebar from './shared/Sidebar/Sidebar.jsx'
 import Topbar from './shared/Topbar/Topbar.jsx'
 import Dashboard from './Features/Dashboard/pages/Dashboard.jsx'
@@ -6,8 +7,15 @@ import Dashboard from './Features/Dashboard/pages/Dashboard.jsx'
 export default function App() {
   const [active, setActive] = useState('dashboard')
   const [query, setQuery] = useState('')
+  const navigate = useNavigate()
 
-  const handleNavigate = (id) => {
+  // NAV items with a `route` property navigate to a new page;
+  // others scroll to the matching section on the dashboard.
+  const handleNavigate = (id, route) => {
+    if (route) {
+      navigate(route)
+      return
+    }
     setActive(id)
     if (id === 'dashboard') {
       window.scrollTo({ top: 0, behavior: 'smooth' })

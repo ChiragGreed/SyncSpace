@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState } from 'react'
 import {
   ArrowLeft,
   Check,
+  CheckCircle2,
   ChevronDown,
   Clock3,
   Mail,
@@ -10,6 +11,7 @@ import {
   UserRound,
   Users,
   X,
+  XCircle,
 } from 'lucide-react'
 import { useSelector } from 'react-redux'
 import SearchUserBackground from '../components/SearchUserBackground.jsx'
@@ -19,7 +21,7 @@ import useTeam from '../hook/useTeam.js'
 
 const statusStyles = {
   pending: 'border-amber/30 bg-amber/10 text-amber',
-  accepted: 'border-teal/30 bg-teal/10 text-teal',
+  accepted: 'border-accent/30 bg-accent/10 text-accent',
   rejected: 'border-rose/30 bg-rose/10 text-rose',
 }
 
@@ -58,13 +60,35 @@ const SearchUser = () => {
     (state) => state.invitation.receivedInvitations ?? [],
   )
 
+  const [respondingId, setRespondingId] = useState(null)
+
   const { searchUsers } = useTeam()
   const { getProjects } = useProject()
   const {
     createInvitation,
     getReceivedInvitations,
     getSentInvitations,
+    respondToInvitation,
   } = useInvitation()
+
+  const handleRespond = async (invitationId, status) => {
+    setRespondingId(invitationId)
+    try {
+      await respondToInvitation(invitationId, status)
+      await getReceivedInvitations()
+      setNotice({
+        type: 'success',
+        text: `Invitation ${status === 'accepted' ? 'accepted' : 'rejected'} successfully.`,
+      })
+    } catch (error) {
+      setNotice({
+        type: 'error',
+        text: error.response?.data?.message || 'Could not update invitation.',
+      })
+    } finally {
+      setRespondingId(null)
+    }
+  }
 
   const activeProject = selectedProject || projects[0]?._id || ''
   const selectedProjectLabel =
@@ -284,9 +308,14 @@ const SearchUser = () => {
           {notice && (
             <div
               className={`mt-4 flex items-center justify-between rounded-xl border px-4 py-3 text-sm ${notice.type === 'success'
-                ? 'border-teal/30 bg-teal/10 text-teal'
+                ? 'border-rose/30 bg-rose/10 text-rose'
                 : 'border-rose/30 bg-rose/10 text-rose'
                 }`}
+              style={notice.type === 'success' ? {
+                background: 'rgba(255,107,61,0.10)',
+                borderColor: 'rgba(255,107,61,0.28)',
+                color: '#ff8c42',
+              } : {}}
               role="status"
             >
               {notice.text}
@@ -366,12 +395,16 @@ const SearchUser = () => {
                       disabled={isInvited(user)}
                       onClick={() => handleInvite(user)}
                       className={`flex h-10 items-center justify-center gap-2 rounded-lg px-4 text-sm font-semibold transition-all duration-200 ${isInvited(user)
-                        ? 'cursor-default border border-teal/30 bg-teal/10 text-teal'
+                        ? 'cursor-default'
                         : 'text-white hover:-translate-y-0.5'
                         }`}
                       style={
                         isInvited(user)
-                          ? undefined
+                          ? {
+                            background: 'rgba(255,107,61,0.12)',
+                            border: '1px solid rgba(255,107,61,0.28)',
+                            color: '#ff8c42',
+                          }
                           : {
                             background:
                               'linear-gradient(135deg, #ff6b3d 0%, #ffb347 100%)',
@@ -448,11 +481,14 @@ const SearchUser = () => {
                     <div className="space-y-3">
                       {invitations.map((invitation) => {
                         const person = getPerson(invitation, direction)
+                        const isPending = invitation.status === 'pending'
+                        const isReceived = direction === 'received'
+                        const isResponding = respondingId === invitation._id
 
                         return (
                           <div
                             key={invitation._id}
-                            className="flex items-center justify-between gap-3 border-t border-border pt-3 first:border-0 first:pt-0"
+                            className="flex items-start justify-between gap-3 border-t border-border pt-3 first:border-0 first:pt-0"
                           >
                             <div className="min-w-0">
                               <p className="truncate text-sm font-medium">
@@ -468,17 +504,55 @@ const SearchUser = () => {
                               </p>
                             </div>
 
-                            <span
-                              className={`shrink-0 rounded-full border px-2 py-1 text-[11px] capitalize ${statusStyles[invitation.status] ||
-                                statusStyles.pending
-                                }`} style={{
-                                  background: 'rgba(255,107,61,0.1)',
-                                  color: '#ff8c42',
-                                  border: '1px solid rgba(255,107,61,0.15)',
-                                }}
-                            >
-                              {invitation.status}
-                            </span>
+                            {/* Show Accept/Reject for pending received invitations */}
+                            {isReceived && isPending ? (
+                              <div className="flex shrink-0 items-center gap-2">
+                                <button
+                                  disabled={isResponding}
+                                  onClick={() => handleRespond(invitation._id, 'accepted')}
+                                  aria-label="Accept invitation"
+                                  className="flex items-center gap-1 rounded-lg border px-2.5 py-1.5 text-xs font-semibold transition-all duration-200 hover:-translate-y-0.5 disabled:opacity-50 disabled:cursor-not-allowed"
+                                  style={{
+                                    background: 'rgba(255,107,61,0.12)',
+                                    borderColor: 'rgba(255,107,61,0.28)',
+                                    color: '#ff8c42',
+                                    boxShadow: '0 2px 8px rgba(255,107,61,0.15)',
+                                  }}
+                                >
+                                  <CheckCircle2 className="h-3.5 w-3.5" />
+                                  {isResponding ? '…' : 'Accept'}
+                                </button>
+
+                                <button
+                                  disabled={isResponding}
+                                  onClick={() => handleRespond(invitation._id, 'rejected')}
+                                  aria-label="Reject invitation"
+                                  className="flex items-center gap-1 rounded-lg border px-2.5 py-1.5 text-xs font-semibold transition-all duration-200 hover:-translate-y-0.5 disabled:opacity-50 disabled:cursor-not-allowed"
+                                  style={{
+                                    background: 'rgba(244,63,94,0.1)',
+                                    borderColor: 'rgba(244,63,94,0.3)',
+                                    color: '#f43f5e',
+                                    boxShadow: '0 2px 8px rgba(244,63,94,0.12)',
+                                  }}
+                                >
+                                  <XCircle className="h-3.5 w-3.5" />
+                                  {isResponding ? '…' : 'Reject'}
+                                </button>
+                              </div>
+                            ) : (
+                              <span
+                                className={`shrink-0 rounded-full border px-2 py-1 text-[11px] capitalize ${statusStyles[invitation.status] || statusStyles.pending}`}
+                                style={
+                                  invitation.status === 'accepted'
+                                    ? { background: 'rgba(255,107,61,0.12)', color: '#ff8c42', border: '1px solid rgba(255,107,61,0.28)' }
+                                    : invitation.status === 'rejected'
+                                    ? { background: 'rgba(244,63,94,0.1)', color: '#f43f5e', border: '1px solid rgba(244,63,94,0.3)' }
+                                    : { background: 'rgba(255,107,61,0.1)', color: '#ff8c42', border: '1px solid rgba(255,107,61,0.15)' }
+                                }
+                              >
+                                {invitation.status}
+                              </span>
+                            )}
                           </div>
                         )
                       })}
